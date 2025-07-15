@@ -28,4 +28,6 @@ dependencies {
     implementation(libs.androidx.navigation3.ui)
 
     implementation(libs.androidx.compose.material.icons.extended)
+
+    implementation(libs.androidx.datastore.preferences)
 }
