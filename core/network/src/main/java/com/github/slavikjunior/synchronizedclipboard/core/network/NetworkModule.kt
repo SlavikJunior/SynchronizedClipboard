@@ -1,5 +1,7 @@
 package com.github.slavikjunior.synchronizedclipboard.core.network
 
+import com.github.slavikjunior.synchronizedclipboard.core.network.api.NetworkSyncApi
+import com.github.slavikjunior.synchronizedclipboard.core.network.KtorNetworkSyncApi
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -8,9 +10,9 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json as SerializationJson
-import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 /**
@@ -20,7 +22,6 @@ import org.koin.dsl.module
  * **Koin Compiler Plugin** (Kotlin Compiler Plugin) на compile-time.
  */
 @Module
-@ComponentScan("com.github.slavikjunior.synchronizedclipboard.core.network")
 class NetworkModule {
 
     /**
@@ -35,16 +36,28 @@ class NetworkModule {
             json(json)
         }
         install(Logging) {
-            level = LogLevel.BODY
+            level = LogLevel.HEADERS
         }
         install(WebSockets) {
         }
     }
 
     /**
-     * Возвращает Koin-модуль для регистрации в [startKoin].
+     * Явный DSL-модуль Koin: регистрирует HTTP-клиент и NetworkSyncApi.
+     *
+     * Вместо `@ComponentScan` (сгенерированный модуль не используется),
+     * чтобы избежать проблем с доступом к сгенерированному `.module` в текущей
+     * версии Koin Compiler Plugin.
      */
     fun networkModule() = module {
         single { httpClient(get()) }
+        single<NetworkSyncApi> {
+            KtorNetworkSyncApi(
+                httpClient = get(),
+                json = get(),
+                defaultDispatcher = get(named("default_dispatcher")),
+            )
+        }
     }
 }
+
