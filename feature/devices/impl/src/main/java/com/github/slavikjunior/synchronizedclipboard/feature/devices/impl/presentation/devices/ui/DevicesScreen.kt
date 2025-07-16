@@ -73,13 +73,13 @@ internal fun DevicesScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is DevicesEffect.CannotUnlinkCurrent -> {
-                    Toast.makeText(context, context.getString(R.string.devices_cannot_unlink_current), Toast.LENGTH_SHORT).show()
+                    snackbarHostState.showSnackbar(context.getString(R.string.devices_cannot_unlink_current))
                 }
                 is DevicesEffect.Unlinked -> {
-                    Toast.makeText(context, context.getString(R.string.devices_unlinked, effect.deviceName), Toast.LENGTH_SHORT).show()
+                    snackbarHostState.showSnackbar(context.getString(R.string.devices_unlinked, effect.deviceName))
                 }
                 is DevicesEffect.UnlinkFailed -> {
-                    Toast.makeText(context, context.getString(R.string.devices_unlink_failed), Toast.LENGTH_SHORT).show()
+                    snackbarHostState.showSnackbar(context.getString(R.string.devices_unlink_failed))
                 }
             }
         }
@@ -101,12 +101,17 @@ private fun DevicesScreenContent(
     onNavigateToTab: (com.github.slavikjunior.synchronizedclipboard.core.navigation.Route) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BackHandler {
-        onNavigateToTab(ClipboardRoute)
-    }
-
     var showUnlinkDialog by remember { mutableStateOf(false) }
     var selectedDevice by remember { mutableStateOf<DeviceItem?>(null) }
+
+    BackHandler {
+        if (showUnlinkDialog) {
+            showUnlinkDialog = false
+            selectedDevice = null
+        } else {
+            onNavigateToTab(ClipboardRoute)
+        }
+    }
 
     if (showUnlinkDialog && selectedDevice != null) {
         SyncClipAlertDialog(
