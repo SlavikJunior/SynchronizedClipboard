@@ -1,6 +1,5 @@
 package com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -77,7 +76,7 @@ internal fun SettingsScreen(
             when (effect) {
                 is SettingsEffect.LogoutCompleted -> onLogout()
                 is SettingsEffect.ShowError -> {
-                    Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_SHORT).show()
+                    snackbarHostState.showSnackbar(context.getString(effect.messageRes))
                 }
             }
         }

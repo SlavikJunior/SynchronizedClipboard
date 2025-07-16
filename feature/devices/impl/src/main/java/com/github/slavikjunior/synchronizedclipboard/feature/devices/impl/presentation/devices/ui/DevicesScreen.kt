@@ -1,6 +1,5 @@
 package com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.presentation.devices.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize

@@ -42,7 +42,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import android.widget.Toast
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.R as DesignR
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.R
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipBottomBar
@@ -60,6 +59,7 @@ import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.naviga
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.event.ClipboardEvent
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.effect.ClipboardEffect
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.model.ClipboardState
+import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.model.formattedTime
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.viewmodel.ClipboardViewModel
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.ClipboardItem
 import org.koin.androidx.compose.koinViewModel
@@ -83,10 +83,6 @@ internal fun ClipboardScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                is ClipboardEffect.ShowToast -> {
-                    Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_SHORT).show()
-                }
-
                 is ClipboardEffect.ShowSnackbar -> {
                     val message = context.getString(effect.messageRes)
                     val actionLabel = effect.actionLabelRes?.let { context.getString(it) }
@@ -233,7 +229,7 @@ private fun ClipboardScreenContent(
             is ScreenState.Error -> {
                 ClipboardErrorContent(
                     message = state.message,
-                    onRetry = { /* TODO */ },
+                    onRetry = { onEvent(ClipboardEvent.Retry) },
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
@@ -400,7 +396,7 @@ private fun ClipboardItemCard(
                 )
 
                 androidx.compose.material3.Text(
-                    text = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(item.timestamp)),
+                    text = item.formattedTime(),
                     style = androidx.compose.material3.MaterialTheme.typography.labelMedium,
                     color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 )
