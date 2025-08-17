@@ -9,4 +9,5 @@
     <string name="clipboard_pinned_changed">Закрепление изменено</string>
     <string name="clipboard_fake_item">Новый элемент (Fake)</string>
     <string name="toast_clipboard_added">Успешно добавлено</string>
+    <string name="clipboard_text_truncated">Текст обрезан до максимальной длины</string>
 </resources>

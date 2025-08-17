@@ -15,15 +15,24 @@ import org.koin.core.component.inject
 
 class TileActionActivity : ComponentActivity(), KoinComponent {
     private val addUseCase: AddClipboardItemUseCase by inject()
+    private companion object {
+        const val MAX_TEXT_LENGTH = 100_000
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val clipboard = getSystemService(ClipboardManager::class.java)
-        val text = clipboard?.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString()
-        if (!text.isNullOrBlank()) {
+        val text = clipboard?.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString() ?: ""
+        if (text.isNotBlank()) {
+            val processed = if (text.length > MAX_TEXT_LENGTH) {
+                Toast.makeText(this, R.string.clipboard_text_truncated, Toast.LENGTH_SHORT).show()
+                text.substring(0, MAX_TEXT_LENGTH)
+            } else {
+                text
+            }
             val item = ClipboardItem(
                 id = System.currentTimeMillis().toString(),
-                text = text,
+                text = processed,
                 timestamp = System.currentTimeMillis(),
                 sourceDevice = "Quick Tile",
                 isPinned = false,

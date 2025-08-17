@@ -3,6 +3,7 @@ package com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.presenta
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.state.ScreenState
+import com.github.slavikjunior.synchronizedclipboard.feature.auth.api.AuthRepository
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.R
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.presentation.auth.event.AuthEvent
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.presentation.auth.effect.AuthEffect
@@ -13,6 +14,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
 
@@ -35,6 +37,7 @@ import org.koin.core.annotation.KoinViewModel
 internal class AuthViewModel(
     private val signInUseCase: SignInUseCase,
     private val signInWithGoogleUseCase: SignInWithGoogleUseCase,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     /** Атомарный StateFlow для UI (MVI: single source of truth). */
@@ -46,8 +49,15 @@ internal class AuthViewModel(
     val effect = _effect.receiveAsFlow()
 
     init {
-        // Форма готова сразу — переводим из Idle в Success пустой формой.
-        _state.value = ScreenState.Success(AuthFormState())
+        viewModelScope.launch {
+            authRepository.observeAuthState().collect { isAuthorized ->
+                if (isAuthorized) {
+                    _effect.send(AuthEffect.NavigateToMain)
+                } else {
+                    _state.update { ScreenState.Success(AuthFormState()) }
+                }
+            }
+        }
     }
 
     /**
@@ -68,7 +78,7 @@ internal class AuthViewModel(
         val current = (state.value as? ScreenState.Success)?.data ?: formCache
         val updated = reducer(current)
         formCache = updated
-        _state.value = ScreenState.Success(updated)
+        _state.update { ScreenState.Success(updated) }
     }
 
     /** Форма кэшируется при переходе в Loading/Error, чтобы восстановить после ошибки. */
@@ -84,15 +94,23 @@ internal class AuthViewModel(
 
     private fun onSignInClick() {
         val form = formCache
+        when {
+            form.login.isBlank() -> {
+                _state.update { ScreenState.Error("Введите логин") }
+                return
+            }
+            form.password.isBlank() -> {
+                _state.update { ScreenState.Error("Введите пароль") }
+                return
+            }
+        }
         viewModelScope.launch {
-            _state.value = ScreenState.Loading
+            _state.update { ScreenState.Loading }
             val result = signInUseCase(form.login, form.password)
             result.fold(
                 onSuccess = { _effect.send(AuthEffect.NavigateToMain) },
-                onFailure = {
-                    _state.value = ScreenState.Error(
-                        it.message ?: "Ошибка входа"
-                    )
+                onFailure = { throwable ->
+                    _state.update { ScreenState.Error(throwable.message ?: "Ошибка входа") }
                     _effect.send(AuthEffect.ShowError(R.string.auth_error_signin))
                 },
             )
@@ -101,14 +119,12 @@ internal class AuthViewModel(
 
     private fun onSignInWithGoogleClick() {
         viewModelScope.launch {
-            _state.value = ScreenState.Loading
+            _state.update { ScreenState.Loading }
             val result = signInWithGoogleUseCase()
             result.fold(
                 onSuccess = { _effect.send(AuthEffect.NavigateToMain) },
-                onFailure = {
-                    _state.value = ScreenState.Error(
-                        it.message ?: "Ошибка входа через Google"
-                    )
+                onFailure = { throwable ->
+                    _state.update { ScreenState.Error(throwable.message ?: "Ошибка входа через Google") }
                     _effect.send(AuthEffect.ShowError(R.string.auth_error_google))
                 },
             )
