@@ -30,4 +30,6 @@ dependencies {
     // Navigation 3 (EntryProviderScope, NavKey) — через :core:navigation transitively,
     // но добавляем явно для стабильности API.
     implementation(libs.androidx.navigation3.runtime)
+
+    implementation(libs.androidx.security.crypto)
 }

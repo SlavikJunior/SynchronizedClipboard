@@ -15,7 +15,9 @@ import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.pres
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
 
@@ -38,7 +40,7 @@ internal class ClipboardViewModel(
     init {
         viewModelScope.launch {
             observeClipboardUseCase().collect { items ->
-                _state.value = ScreenState.Success(ClipboardState(items = items))
+                _state.update { ScreenState.Success(ClipboardState(items = items)) }
             }
         }
     }
@@ -49,6 +51,7 @@ internal class ClipboardViewModel(
             is ClipboardEvent.OnItemCopied -> onItemCopied(event.itemId)
             is ClipboardEvent.OnItemDeleted -> onItemDeleted(event.itemId)
             is ClipboardEvent.OnItemPinned -> onItemPinned(event.itemId)
+            ClipboardEvent.Retry -> onRetry()
         }
     }
 
@@ -78,7 +81,13 @@ internal class ClipboardViewModel(
 
     private fun onItemCopied(itemId: String) {
         viewModelScope.launch {
-            _effect.send(ClipboardEffect.ShowToast(R.string.clipboard_copied))
+            _effect.send(
+                ClipboardEffect.ShowSnackbar(
+                    messageRes = R.string.clipboard_copied,
+                    actionLabelRes = null,
+                    onAction = null,
+                )
+            )
         }
     }
 
@@ -106,7 +115,22 @@ internal class ClipboardViewModel(
     private fun onItemPinned(itemId: String) {
         viewModelScope.launch {
             pinClipboardItemUseCase(itemId)
-            _effect.send(ClipboardEffect.ShowToast(R.string.clipboard_pinned_changed))
+            _effect.send(
+                ClipboardEffect.ShowSnackbar(
+                    messageRes = R.string.clipboard_pinned_changed,
+                    actionLabelRes = null,
+                    onAction = null,
+                )
+            )
+        }
+    }
+
+    private fun onRetry() {
+        viewModelScope.launch {
+            _state.update { ScreenState.Loading }
+            observeClipboardUseCase().firstOrNull()?.let { items ->
+                _state.update { ScreenState.Success(ClipboardState(items = items)) }
+            } ?: _state.update { ScreenState.Error("Не удалось загрузить данные") }
         }
     }
 }

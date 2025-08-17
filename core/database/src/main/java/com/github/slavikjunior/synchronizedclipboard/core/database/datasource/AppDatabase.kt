@@ -7,13 +7,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.github.slavikjunior.synchronizedclipboard.core.database.entity.ClipboardItemEntity
 
-@Entity(tableName = "dummy_table")
-data class DummyEntity(
-    @PrimaryKey val id: Int = 1
-)
-
 @Database(
-    entities = [DummyEntity::class, ClipboardItemEntity::class],
+    entities = [ClipboardItemEntity::class],
     version = 2,
     exportSchema = false
 )
