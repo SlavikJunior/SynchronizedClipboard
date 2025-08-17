@@ -25,31 +25,35 @@ class LruReactiveCache<K, V>(
 
     override fun observeAll(): Flow<List<V>> = cacheState.asStateFlow()
 
-    override fun getById(key: K): V? = cache[key]
+    override fun getById(key: K): V? = synchronized(cache) { cache[key] }
 
     override suspend fun put(key: K, value: V) {
-        cache[key] = value
-        emitState()
+        synchronized(cache) {
+            cache[key] = value
+            cacheState.value = cache.values.toList()
+        }
     }
 
     override suspend fun remove(key: K) {
-        cache.remove(key)
-        emitState()
+        synchronized(cache) {
+            cache.remove(key)
+            cacheState.value = cache.values.toList()
+        }
     }
 
     override suspend fun putAll(items: Map<K, V>) {
-        items.forEach { (key, value) ->
-            cache[key] = value
+        synchronized(cache) {
+            items.forEach { (key, value) ->
+                cache[key] = value
+            }
+            cacheState.value = cache.values.toList()
         }
-        emitState()
     }
 
     override suspend fun clear() {
-        cache.clear()
-        emitState()
-    }
-
-    private fun emitState() {
-        cacheState.value = cache.values.toList()
+        synchronized(cache) {
+            cache.clear()
+            cacheState.value = emptyList()
+        }
     }
 }

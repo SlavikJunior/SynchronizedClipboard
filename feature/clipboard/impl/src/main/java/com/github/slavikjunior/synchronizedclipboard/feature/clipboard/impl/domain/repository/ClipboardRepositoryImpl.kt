@@ -48,12 +48,14 @@ internal class ClipboardRepositoryImpl(
     private val scope = CoroutineScope(ioDispatcher + SupervisorJob())
 
     override fun observeClipboard(): Flow<List<ClipboardItem>> {
-        if (!isCacheWarm) {
-            scope.launch {
-                val entities = clipboardDao.getAll()
-                val decrypted = entities.map { it.toDomain().copy(text = cryptoManager.decrypt(it.encryptedText)) }
-                cache.putAll(decrypted.associateBy({ it.id }, { it }))
+        synchronized(this) {
+            if (!isCacheWarm) {
                 isCacheWarm = true
+                scope.launch {
+                    val entities = clipboardDao.getAll()
+                    val decrypted = entities.map { it.toDomain().copy(text = cryptoManager.decrypt(it.encryptedText)) }
+                    cache.putAll(decrypted.associateBy({ it.id }, { it }))
+                }
             }
         }
         startNetworkListening()
@@ -87,8 +89,10 @@ internal class ClipboardRepositoryImpl(
     }
 
     private fun startNetworkListening() {
-        if (isListeningToNetwork) return
-        isListeningToNetwork = true
+        synchronized(this) {
+            if (isListeningToNetwork) return
+            isListeningToNetwork = true
+        }
         scope.launch {
             networkSyncApi.observeIncomingItems().collect { dto ->
                 val decryptedText = cryptoManager.decrypt(dto.encryptedText)

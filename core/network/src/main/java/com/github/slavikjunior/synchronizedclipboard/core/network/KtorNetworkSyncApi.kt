@@ -20,6 +20,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
+import android.util.Log
 
 @Single
 internal class KtorNetworkSyncApi(
@@ -29,6 +30,7 @@ internal class KtorNetworkSyncApi(
 ) : NetworkSyncApi {
 
     private val scope = CoroutineScope(defaultDispatcher + SupervisorJob())
+    private val tag = "KtorNetworkSyncApi"
 
     private val _incomingItems = MutableSharedFlow<EncryptedClipboardDto>(extraBufferCapacity = 64)
     private val incomingItems = _incomingItems.asSharedFlow()
@@ -65,7 +67,7 @@ internal class KtorNetworkSyncApi(
                         }
                     }
                 } catch (e: Exception) {
-                    // ignore — reconnect with backoff
+                    Log.w(tag, "WebSocket error, will retry in $reconnectDelay ms", e)
                 } finally {
                     delay(reconnectDelay)
                     reconnectDelay = minOf(reconnectDelay * 2, 30_000L)

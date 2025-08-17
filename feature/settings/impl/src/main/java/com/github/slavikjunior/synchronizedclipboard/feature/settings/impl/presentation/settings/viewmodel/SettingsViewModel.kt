@@ -15,6 +15,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
 
@@ -41,7 +42,7 @@ internal class SettingsViewModel(
     init {
         viewModelScope.launch {
             observeSettingsUseCase().collect { settings ->
-                _state.value = ScreenState.Success(SettingsState.from(settings))
+                _state.update { ScreenState.Success(SettingsState.from(settings)) }
             }
         }
     }
@@ -69,7 +70,7 @@ internal class SettingsViewModel(
         viewModelScope.launch {
             // TODO: реализовать UseCase сохранения keepHistoryDays
             val current = (_state.value as? ScreenState.Success)?.data ?: SettingsState()
-            _state.value = ScreenState.Success(current.copy(keepHistoryDays = event.days))
+            _state.update { ScreenState.Success(current.copy(keepHistoryDays = event.days)) }
         }
     }
 

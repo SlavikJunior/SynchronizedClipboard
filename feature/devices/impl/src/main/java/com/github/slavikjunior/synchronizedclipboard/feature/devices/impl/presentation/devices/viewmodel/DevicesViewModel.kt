@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
 
@@ -34,13 +35,13 @@ internal class DevicesViewModel(
         viewModelScope.launch {
             repository.observeDevices()
                 .catch { error ->
-                    _state.value = ScreenState.Error(error.message ?: "Ошибка загрузки устройств")
+                    _state.update { ScreenState.Error(error.message ?: "Ошибка загрузки устройств") }
                 }
                 .collect { devices ->
                     if (devices.isEmpty()) {
-                        _state.value = ScreenState.Empty("Нет привязанных устройств")
+                        _state.update { ScreenState.Empty("Нет привязанных устройств") }
                     } else {
-                        _state.value = ScreenState.Success(DevicesState(devices = devices))
+                        _state.update { ScreenState.Success(DevicesState(devices = devices)) }
                     }
                 }
         }
