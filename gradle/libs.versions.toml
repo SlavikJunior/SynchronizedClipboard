@@ -8,6 +8,11 @@ lifecycleRuntimeKtx = "2.11.0"
 activityCompose = "1.13.0"
 kotlin = "2.4.10"
 composeBom = "2026.06.01"
+# Navigation
+nav3Router = "1.1.0"
+navigation3 = "1.1.2"
+# Serialization (нужна для @Serializable Route-ключей навигации)
+kotlinxSerializationJson = "1.11.0"
 
 [libraries]
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
@@ -26,6 +31,12 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+# Навигация: Router (arttttt/Nav3Router) + official androidx.navigation3 runtime/ui
+nav3-router = { group = "io.github.arttttt.nav3router", name = "nav3router", version.ref = "nav3Router" }
+androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "navigation3" }
+androidx-navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "navigation3" }
+# Serialization
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -34,8 +45,8 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 syncclip-android-application = { id = "com.github.slavikjunior.synchronizedclipboard.android.application" }
 syncclip-android-library = { id = "com.github.slavikjunior.synchronizedclipboard.android.library" }
 syncclip-android-compose = { id = "com.github.slavikjunior.synchronizedclipboard.android.compose" }
 syncclip-android-feature = { id = "com.github.slavikjunior.synchronizedclipboard.android.feature" }
-

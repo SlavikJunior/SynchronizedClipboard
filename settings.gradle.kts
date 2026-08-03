@@ -24,4 +24,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "SynchronizedClipboard"
 include(":app")
+include(":core:navigation")
+include(":core:designsystem")
 includeBuild("build-logic")
