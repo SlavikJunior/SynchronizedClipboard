@@ -13,6 +13,16 @@ nav3Router = "1.1.0"
 navigation3 = "1.1.2"
 # Serialization (нужна для @Serializable Route-ключей навигации)
 kotlinxSerializationJson = "1.11.0"
+# Ktor — последняя стабильная на Aug 2026
+ktor = "3.5.2"
+# Room KMP — последняя стабильная (>= 2.6.0 требование тз.txt)
+room = "2.8.4"
+# Google KSP — используется ТОЛЬКО для room-compiler (Koin 4.x → compiler plugin, не KSP)
+ksp = "2.3.10"
+# Koin 4.x — compiler plugin (KSP deprecated, теперь Kotlin Compiler Plugin)
+koin = "4.2.2"
+# Koin Compiler Plugin Gradle — заменяет ksp-обработку Koin Annotations
+koinCompilerPlugin = "1.1.0"
 
 [libraries]
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
@@ -31,12 +41,31 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 # Навигация: Router (arttttt/Nav3Router) + official androidx.navigation3 runtime/ui
 nav3-router = { group = "io.github.arttttt.nav3router", name = "nav3router", version.ref = "nav3Router" }
 androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "navigation3" }
 androidx-navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "navigation3" }
 # Serialization
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+# Ktor (Android engine — OkHttp)
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+# Room KMP
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+# Компилятор Room для генерации DAO (KSP-процессор, НЕ Koin)
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+# Koin 4.x — compiler plugin (auto-injects koin-core + koin-core-annotations)
+koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin" }
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
+# Аннотации Koin 4.x (@Module, @Single, @ComponentScan)
+koin-annotations = { group = "io.insert-koin", name = "koin-annotations", version.ref = "koin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -46,7 +75,12 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+# Google KSP — используется ТОЛЬКО для room-compiler (Koin 4.x → compiler plugin, не KSP)
+google-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+# Koin Compiler Plugin — заменяет ksp-обработку Koin Annotations (4.x)
+koin-compiler = { id = "io.insert-koin.koin-compiler", version.ref = "koinCompilerPlugin" }
 syncclip-android-application = { id = "com.github.slavikjunior.synchronizedclipboard.android.application" }
 syncclip-android-library = { id = "com.github.slavikjunior.synchronizedclipboard.android.library" }
 syncclip-android-compose = { id = "com.github.slavikjunior.synchronizedclipboard.android.compose" }
 syncclip-android-feature = { id = "com.github.slavikjunior.synchronizedclipboard.android.feature" }
+syncclip-koin = { id = "com.github.slavikjunior.synchronizedclipboard.koin" }

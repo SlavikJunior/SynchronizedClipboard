@@ -68,6 +68,13 @@ fun Project.configureAndroidModule() {
     }
 
     configureKotlin()
+
+    // KSP включен для всех Android-модулей — используется Room (room-compiler)
+    // и Koin Annotations (koin-ksp-compiler) для генерации кода DI.
+    // Плагин id = "com.google.devtools.ksp" применяется здесь, а не в модуле,
+    // чтобы не дублировать в каждом build.gradle.kts.
+    // Настройки KSP (args, gen-dirs) задаются в модулях, которые фактически используют KSP,
+    // чтобы не навязывать их другим модулям (например, :core:navigation без KSP-аннотаций).
 }
 
 fun Project.configureKotlin() {

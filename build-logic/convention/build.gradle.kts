@@ -33,5 +33,9 @@ gradlePlugin {
             id = libs.plugins.syncclip.android.feature.get().pluginId
             implementationClass = "com.github.slavikjunior.synchronizedclipboard.AndroidFeaturePlugin"
         }
+        register("koin") {
+            id = "com.github.slavikjunior.synchronizedclipboard.koin"
+            implementationClass = "com.github.slavikjunior.synchronizedclipboard.KoinConventionPlugin"
+        }
     }
 }

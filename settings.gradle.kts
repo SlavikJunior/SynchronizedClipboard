@@ -26,4 +26,6 @@ rootProject.name = "SynchronizedClipboard"
 include(":app")
 include(":core:navigation")
 include(":core:designsystem")
+include(":core:network")
+include(":core:database")
 includeBuild("build-logic")
