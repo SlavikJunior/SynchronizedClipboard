@@ -8,6 +8,5 @@ android {
 }
 
 dependencies {
-    // Material 3 icons-extended — для иконок в SyncClipEmptyView(..., icon: Painter)
     implementation(libs.androidx.compose.material.icons.extended)
 }

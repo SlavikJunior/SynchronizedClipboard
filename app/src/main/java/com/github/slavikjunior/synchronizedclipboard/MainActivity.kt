@@ -16,6 +16,8 @@ import androidx.navigation3.ui.NavDisplay
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.api.AuthRoute
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.navigation.authNavEntry
+import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.ClipboardRoute
+import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.navigation.clipboardNavEntry
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,13 +45,11 @@ private fun RootNavHost(
         backStack = backStack,
         modifier = modifier,
         entryProvider = entryProvider {
+            clipboardNavEntry()
             authNavEntry(
                 onSignedIn = {
-                    Toast.makeText(
-                        context,
-                        "Успешный вход!",
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                    backStack.clear()
+                    backStack.add(ClipboardRoute)
                 },
             )
         },

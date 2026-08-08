@@ -58,6 +58,8 @@ dependencies {
     implementation(project(":core:database"))
     implementation(project(":feature:auth:api"))
     implementation(project(":feature:auth:impl"))
+    implementation(project(":feature:clipboard:api"))
+    implementation(project(":feature:clipboard:impl"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
