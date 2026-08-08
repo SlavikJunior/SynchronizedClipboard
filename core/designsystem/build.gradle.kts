@@ -8,5 +8,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:navigation"))
+    implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.compose.material.icons.extended)
 }

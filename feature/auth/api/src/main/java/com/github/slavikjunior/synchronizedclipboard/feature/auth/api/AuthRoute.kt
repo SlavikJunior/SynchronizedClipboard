@@ -11,4 +11,7 @@ import kotlinx.serialization.Serializable
  * Сериализуется для сохранения backStack через NavBackStackSerializer.
  */
 @Serializable
-data object AuthRoute : Route
+data object AuthRoute : Route {
+    // Auth экран не входит в BottomNav — оставляем пустой заголовок.
+    override val tabTitle: String = ""
+}

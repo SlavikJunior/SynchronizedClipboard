@@ -4,14 +4,14 @@ plugins {
 }
 
 android {
-    namespace = "com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl"
+    namespace = "com.github.slavikjunior.synchronizedclipboard.feature.devices.impl"
 }
 
 dependencies {
+    implementation(project(":feature:devices:api"))
     implementation(project(":feature:clipboard:api"))
     implementation(project(":core:navigation"))
     implementation(project(":core:designsystem"))
-    implementation(project(":feature:devices:api"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -24,6 +24,7 @@ dependencies {
     implementation(libs.koin.androidx.compose)
 
     implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
 
     implementation(libs.androidx.compose.material.icons.extended)
 }

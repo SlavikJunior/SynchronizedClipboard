@@ -12,9 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,11 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipErrorView
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipLoadingView
+import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipScaffold
+import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipTopAppBar
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.state.ScreenState
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.AuthEffect
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.AuthEvent
@@ -37,24 +36,21 @@ import org.koin.compose.viewmodel.koinViewModel
 /**
  * **Stateless** Composable — рендерит экран по [screenState].
  *
- * Обёртка в `Scaffold` + `when` по [ScreenState] с переиспользуемыми
+ * Обёртка в `SyncClipScaffold` + `when` по [ScreenState] с переиспользуемыми
  * view из :core:designsystem (Loading / Error). Форма — Material3 primitives
  * (wrapper-ы для TextField/Button в :core:designsystem пока не созданы).
  *
  * `internal` — вызывается только из [AuthScreen] в том же модуле.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AuthScreenContent(
     screenState: ScreenState<AuthFormState>,
     onEvent: (AuthEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Вход в SynchronizedClipboard") })
-        },
+    SyncClipScaffold(
         modifier = modifier,
+        topBar = { SyncClipTopAppBar(title = "Вход в SynchronizedClipboard") },
     ) { innerPadding: PaddingValues ->
         when (screenState) {
             is ScreenState.Loading ->

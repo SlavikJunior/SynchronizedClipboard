@@ -60,6 +60,8 @@ dependencies {
     implementation(project(":feature:auth:impl"))
     implementation(project(":feature:clipboard:api"))
     implementation(project(":feature:clipboard:impl"))
+    implementation(project(":feature:devices:api"))
+    implementation(project(":feature:devices:impl"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

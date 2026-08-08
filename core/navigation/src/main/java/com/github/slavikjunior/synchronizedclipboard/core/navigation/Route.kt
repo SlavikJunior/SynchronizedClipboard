@@ -33,4 +33,11 @@ import androidx.navigation3.runtime.NavKey
  *
  * Контракт строгий (см. AGENTS.md): только `data object` / `data class` с `@Serializable`.
  */
-interface Route : NavKey
+interface Route : NavKey {
+    /**
+     * Заголовок таба для [com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipBottomBar].
+     * По умолчанию пустая строка — экраны без нижней панели (например, авторизация)
+     * не обязаны переопределять свойство.
+     */
+    val tabTitle: String get() = ""
+}

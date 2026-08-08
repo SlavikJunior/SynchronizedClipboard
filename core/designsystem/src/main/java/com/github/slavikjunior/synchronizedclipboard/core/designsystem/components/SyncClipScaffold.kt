@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 fun SyncClipScaffold(
     modifier: Modifier = Modifier,
     topBar: @Composable () -> Unit = {},
+    bottomBar: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     snackbarHostState: SnackbarHostState? = null,
     content: @Composable (PaddingValues) -> Unit,
@@ -18,6 +19,7 @@ fun SyncClipScaffold(
     Scaffold(
         modifier = modifier,
         topBar = topBar,
+        bottomBar = bottomBar,
         floatingActionButton = floatingActionButton,
         snackbarHost = {
             if (snackbarHostState != null) {
