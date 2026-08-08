@@ -35,17 +35,29 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.activity.compose)
 
     // Koin runtime — для startKoin() и androidContext() в Application классе
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 
+    // Navigation 3 — runtime + UI (NavDisplay, NavBackStack, entryProvider)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.nav3.router)
+
+    // kotlinx-serialization-json для NavBackStackSerializer
+    implementation(libs.kotlinx.serialization.json)
+
     // Внутренние модули
     implementation(project(":core:navigation"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:network"))
     implementation(project(":core:database"))
+    implementation(project(":feature:auth:api"))
+    implementation(project(":feature:auth:impl"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

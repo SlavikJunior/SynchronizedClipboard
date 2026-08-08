@@ -2,9 +2,9 @@ package com.github.slavikjunior.synchronizedclipboard.core.network
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json as SerializationJson
 import org.koin.core.annotation.ComponentScan
@@ -15,16 +15,7 @@ import org.koin.core.annotation.Single
  * Koin DI-модуль для сетевого слоя.
  *
  * Аннотации Koin (`@Module`, `@Single`, `@ComponentScan`) обрабатываются
- * **Koin Compiler Plugin** (Kotlin Compiler Plugin, замена KSP) на compile-time.
- * Сгенерированный модуль доступен через `_NetworkModule().module`.
- *
- * Точка входа в :app:
- * ```kotlin
- * startKoin {
- *     androidContext(context)
- *     modules(_NetworkModule().module)
- * }
- * ```
+ * **Koin Compiler Plugin** (Kotlin Compiler Plugin) на compile-time.
  */
 @Module
 @ComponentScan("com.github.slavikjunior.synchronizedclipboard.core.network")
@@ -36,7 +27,7 @@ class NetworkModule {
      */
     @Single
     fun httpClient(
-        json: SerializationJson   // kotlinx-serialization Json, передаётся Koin-ом (см. JsonModule в :app)
+        json: SerializationJson,   // kotlinx-serialization Json, передаётся Koin-ом (см. JsonModule в :app)
     ): HttpClient = HttpClient(OkHttp) {
         install(ContentNegotiation) {
             json(json)

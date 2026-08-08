@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
+
 /**
  * MVI-ViewModel auth-фичи.
  *
@@ -20,7 +21,7 @@ import org.koin.core.annotation.KoinViewModel
  * **Intent**: `handleEvent(AuthEvent)` — синхронный reducer.
  *
  * `@KoinViewModel` — Koin Compiler Plugin 4.x регистрирует фабрику в сгенерированном
- * `_AuthModule().module`. Зависимости UseCase резолвятся из Koin graph через
+ * Koin-модуле. Зависимости UseCase резолвятся из Koin graph через
  * `@Single`-аннотированные impl в [AuthModule] (через @ComponentScan).
  *
  * `internal` — ViewModel не покидает :feature:auth:impl; извлекается в Compose через

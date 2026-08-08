@@ -11,8 +11,7 @@ import org.koin.core.annotation.Single
  * Koin DI-модуль для слоя данных (Room).
  *
  * `@ComponentScan` заставит Koin Compiler Plugin рекурсивно сканировать
- * пакет `...core.database` на наличие `@Single`/`@Factory` — чтобы новые
- * DAO или Repository можно было добавить одним `@Single`-методом.
+ * пакет `...core.database` на наличие `@Single`/`@Factory`.
  */
 @Module
 @ComponentScan("com.github.slavikjunior.synchronizedclipboard.core.database")
@@ -27,8 +26,6 @@ class DatabaseModule {
         Room.databaseBuilder(
             context = context,
             klass = AppDatabase::class.java,
-            name = "syncclip-db"
-        )
-            .fallbackToDestructiveMigration() // упрощаем миграцию на этапе MVP
-            .build()
+            name = "syncclip-db",
+        ).build()
 }

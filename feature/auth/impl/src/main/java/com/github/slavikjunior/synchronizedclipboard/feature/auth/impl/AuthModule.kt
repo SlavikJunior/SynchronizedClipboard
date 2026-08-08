@@ -8,7 +8,7 @@ import org.koin.core.annotation.Module
  *
  * `@Module` + `@ComponentScan` — Koin Compiler Plugin на compile-time рекурсивно
  * сканирует пакет `...feature.auth.impl` на наличие `@Single` / `@Factory` / `@KoinViewModel`
- * и генерирует `_AuthModule().module`.
+ * и генерирует Koin module.
  *
  * **Публичный класс** — :app добавляет его в startKoin { modules(...) }.
  */
