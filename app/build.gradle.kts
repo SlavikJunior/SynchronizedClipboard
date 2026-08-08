@@ -62,6 +62,8 @@ dependencies {
     implementation(project(":feature:clipboard:impl"))
     implementation(project(":feature:devices:api"))
     implementation(project(":feature:devices:impl"))
+    implementation(project(":feature:settings:api"))
+    implementation(project(":feature:settings:impl"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

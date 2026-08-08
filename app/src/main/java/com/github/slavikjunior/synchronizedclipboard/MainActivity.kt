@@ -19,6 +19,8 @@ import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.Clipb
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.navigation.clipboardNavEntry
 import com.github.slavikjunior.synchronizedclipboard.feature.devices.api.DevicesRoute
 import com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.navigation.devicesNavEntry
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.navigation.SettingsRoute
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.navigation.settingsNavEntry
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +55,7 @@ private fun RootNavHost(
         entryProvider = entryProvider {
             clipboardNavEntry(onNavigateToTab = onNavigateToTab)
             devicesNavEntry(onNavigateToTab = onNavigateToTab)
+            settingsNavEntry(onNavigateToTab = onNavigateToTab)
             authNavEntry(
                 onSignedIn = {
                     backStack.remove(AuthRoute)

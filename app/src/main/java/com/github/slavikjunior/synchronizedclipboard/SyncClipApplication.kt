@@ -11,6 +11,8 @@ import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.Clip
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.module as clipboardModule
 import com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.DevicesModule
 import com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.module as devicesModule
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.SettingsModule
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.module as settingsModule
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -32,6 +34,7 @@ class SyncClipApplication : Application() {
                 AuthModule().authModule(),
                 ClipboardModule().clipboardModule(),
                 DevicesModule().devicesModule(),
+                SettingsModule().settingsModule(),
             )
         }
     }

@@ -1,0 +1,18 @@
+<resources>
+    <string name="settings_title">Настройки</string>
+    <string name="settings_profile_title">Профиль</string>
+    <string name="settings_email_label">Email</string>
+    <string name="settings_logout">Выйти</string>
+    <string name="settings_theme_title">Тема</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
+    <string name="settings_theme_system">Системная</string>
+    <string name="settings_history_title">Хранение истории</string>
+    <string name="settings_history_days">%1$d дней</string>
+    <string name="settings_logout_confirm_title">Выход</string>
+    <string name="settings_logout_confirm_message">Вы действительно хотите выйти?</string>
+    <string name="settings_logout_confirm">Выйти</string>
+    <string name="settings_logout_cancel">Отмена</string>
+    <string name="settings_logout_success">Вы вышли из аккаунта</string>
+    <string name="settings_error_generic">Ошибка</string>
+</resources>

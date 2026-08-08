@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.PushPin
@@ -55,6 +56,7 @@ import com.github.slavikjunior.synchronizedclipboard.core.designsystem.component
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.state.ScreenState
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.ClipboardRoute
 import com.github.slavikjunior.synchronizedclipboard.feature.devices.api.DevicesRoute
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.navigation.SettingsRoute
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.event.ClipboardEvent
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.effect.ClipboardEffect
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.model.ClipboardState
@@ -153,6 +155,21 @@ private fun ClipboardScreenContent(
                         unselectedIcon = {
                             androidx.compose.material3.Icon(
                                 imageVector = Icons.Filled.Devices,
+                                contentDescription = null,
+                            )
+                        },
+                    ),
+                    BottomNavTab(
+                        route = SettingsRoute,
+                        selectedIcon = {
+                            androidx.compose.material3.Icon(
+                                imageVector = Icons.Filled.Settings,
+                                contentDescription = null,
+                            )
+                        },
+                        unselectedIcon = {
+                            androidx.compose.material3.Icon(
+                                imageVector = Icons.Filled.Settings,
                                 contentDescription = null,
                             )
                         },

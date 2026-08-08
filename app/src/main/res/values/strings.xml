@@ -4,6 +4,7 @@
     <!-- Tabs -->
     <string name="tab_clipboard">Буфер</string>
     <string name="tab_devices">Устройства</string>
+    <string name="tab_settings">Настройки</string>
 
     <!-- Auth -->
     <string name="auth_title">Вход в SynchronizedClipboard</string>

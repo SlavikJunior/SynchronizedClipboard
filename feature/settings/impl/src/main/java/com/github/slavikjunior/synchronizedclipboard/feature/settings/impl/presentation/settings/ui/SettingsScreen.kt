@@ -1,40 +1,39 @@
-package com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.presentation.devices.ui
+package com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.ui
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Devices
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.slavikjunior.synchronizedclipboard.core.designsystem.R as DesignR
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.BottomNavTab
-import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipAlertDialog
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipBottomBar
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipEmptyView
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipErrorView
@@ -43,28 +42,31 @@ import com.github.slavikjunior.synchronizedclipboard.core.designsystem.component
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipTopAppBar
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.state.ScreenState
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.ClipboardRoute
-import com.github.slavikjunior.synchronizedclipboard.feature.devices.api.DeviceItem
 import com.github.slavikjunior.synchronizedclipboard.feature.devices.api.DevicesRoute
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.model.AppTheme
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.navigation.SettingsRoute
-import com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.R
-import com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.presentation.devices.effect.DevicesEffect
-import com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.presentation.devices.event.DevicesEvent
-import com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.presentation.devices.model.DevicesState
-import com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.presentation.devices.ui.components.DeviceCard
-import com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.presentation.devices.viewmodel.DevicesViewModel
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.R
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.effect.SettingsEffect
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.event.SettingsEvent
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.model.SettingsState
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.ui.components.HistoryDaysSelector
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.ui.components.ProfileCard
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.ui.components.ThemeSelector
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.viewmodel.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 
 /**
- * Stateful-обёртка над [DevicesScreenContent].
+ * Stateful-обёртка над [SettingsScreenContent].
  *
- * - `State` собирается через `collectAsStateWithLifecycle`.
- * - `Effect` (one-shot) собирается в `LaunchedEffect`.
+ * - State собирается через `collectAsStateWithLifecycle`.
+ * - Effect собирается в `LaunchedEffect`.
  * - ViewModel резолвится через Koin `koinViewModel()`.
  */
 @Composable
-internal fun DevicesScreen(
+internal fun SettingsScreen(
     onNavigateToTab: (com.github.slavikjunior.synchronizedclipboard.core.navigation.Route) -> Unit = {},
-    viewModel: DevicesViewModel = koinViewModel(),
+    onLogout: () -> Unit = {},
+    viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val screenState by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -73,20 +75,15 @@ internal fun DevicesScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                is DevicesEffect.CannotUnlinkCurrent -> {
-                    Toast.makeText(context, context.getString(R.string.devices_cannot_unlink_current), Toast.LENGTH_SHORT).show()
-                }
-                is DevicesEffect.Unlinked -> {
-                    Toast.makeText(context, context.getString(R.string.devices_unlinked, effect.deviceName), Toast.LENGTH_SHORT).show()
-                }
-                is DevicesEffect.UnlinkFailed -> {
-                    Toast.makeText(context, context.getString(R.string.devices_unlink_failed), Toast.LENGTH_SHORT).show()
+                is SettingsEffect.LogoutCompleted -> onLogout()
+                is SettingsEffect.ShowError -> {
+                    Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
-    DevicesScreenContent(
+    SettingsScreenContent(
         state = screenState,
         snackbarHostState = snackbarHostState,
         onEvent = viewModel::handleEvent,
@@ -95,10 +92,10 @@ internal fun DevicesScreen(
 }
 
 @Composable
-private fun DevicesScreenContent(
-    state: ScreenState<DevicesState>,
+private fun SettingsScreenContent(
+    state: ScreenState<SettingsState>,
     snackbarHostState: SnackbarHostState,
-    onEvent: (DevicesEvent) -> Unit,
+    onEvent: (SettingsEvent) -> Unit,
     onNavigateToTab: (com.github.slavikjunior.synchronizedclipboard.core.navigation.Route) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -106,33 +103,12 @@ private fun DevicesScreenContent(
         onNavigateToTab(ClipboardRoute)
     }
 
-    var showUnlinkDialog by remember { mutableStateOf(false) }
-    var selectedDevice by remember { mutableStateOf<DeviceItem?>(null) }
-
-    if (showUnlinkDialog && selectedDevice != null) {
-        SyncClipAlertDialog(
-            title = stringResource(id = R.string.devices_unlink_confirm_title),
-            message = stringResource(id = R.string.devices_unlink_confirm_message, selectedDevice!!.name),
-            confirmText = stringResource(id = R.string.devices_unlink_confirm),
-            dismissText = stringResource(id = R.string.devices_unlink_cancel),
-            onConfirm = {
-                onEvent(DevicesEvent.OnUnlinkClicked(selectedDevice!!))
-                showUnlinkDialog = false
-                selectedDevice = null
-            },
-            onDismiss = {
-                showUnlinkDialog = false
-                selectedDevice = null
-            },
-        )
-    }
-
     SyncClipScaffold(
         modifier = modifier.fillMaxSize(),
-        topBar = { SyncClipTopAppBar(titleRes = R.string.devices_title) },
+        topBar = { SyncClipTopAppBar(titleRes = R.string.settings_title) },
         bottomBar = {
             SyncClipBottomBar(
-                currentRoute = DevicesRoute,
+                currentRoute = SettingsRoute,
                 tabs = listOf(
                     BottomNavTab(
                         route = ClipboardRoute,
@@ -144,7 +120,7 @@ private fun DevicesScreenContent(
                         },
                         unselectedIcon = {
                             Icon(
-                                imageVector = Icons.Filled.ContentCopy,
+                                imageVector = Icons.Outlined.ContentCopy,
                                 contentDescription = null,
                             )
                         },
@@ -159,7 +135,7 @@ private fun DevicesScreenContent(
                         },
                         unselectedIcon = {
                             Icon(
-                                imageVector = Icons.Filled.Devices,
+                                imageVector = Icons.Outlined.Devices,
                                 contentDescription = null,
                             )
                         },
@@ -174,7 +150,7 @@ private fun DevicesScreenContent(
                         },
                         unselectedIcon = {
                             Icon(
-                                imageVector = Icons.Filled.Settings,
+                                imageVector = Icons.Outlined.Settings,
                                 contentDescription = null,
                             )
                         },
@@ -188,7 +164,7 @@ private fun DevicesScreenContent(
         when (state) {
             ScreenState.Idle -> Unit
             ScreenState.Loading -> {
-                DevicesLoadingContent(
+                SettingsLoadingContent(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
@@ -196,30 +172,17 @@ private fun DevicesScreenContent(
             }
 
             is ScreenState.Success -> {
-                val devices = state.data.devices
-                if (devices.isEmpty()) {
-                    DevicesEmptyContent(
-                        message = stringResource(id = R.string.devices_empty),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding),
-                    )
-                } else {
-                    DevicesSuccessContent(
-                        devices = devices,
-                        onUnlinkClick = { device ->
-                            selectedDevice = device
-                            showUnlinkDialog = true
-                        },
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding),
-                    )
-                }
+                SettingsSuccessContent(
+                    settings = state.data,
+                    onEvent = onEvent,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                )
             }
 
             is ScreenState.Empty -> {
-                DevicesEmptyContent(
+                SettingsEmptyContent(
                     message = state.message,
                     modifier = Modifier
                         .fillMaxSize()
@@ -228,7 +191,7 @@ private fun DevicesScreenContent(
             }
 
             is ScreenState.Error -> {
-                DevicesErrorContent(
+                SettingsErrorContent(
                     message = state.message,
                     onRetry = { /* TODO */ },
                     modifier = Modifier
@@ -241,7 +204,7 @@ private fun DevicesScreenContent(
 }
 
 @Composable
-private fun DevicesLoadingContent(
+private fun SettingsLoadingContent(
     modifier: Modifier = Modifier,
 ) {
     SyncClipLoadingView(modifier = modifier.fillMaxSize())
@@ -249,14 +212,14 @@ private fun DevicesLoadingContent(
 
 @Preview(showBackground = true)
 @Composable
-private fun DevicesLoadingContentPreview() {
+private fun SettingsLoadingContentPreview() {
     com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
-        DevicesLoadingContent()
+        SettingsLoadingContent()
     }
 }
 
 @Composable
-private fun DevicesErrorContent(
+private fun SettingsErrorContent(
     message: String,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
@@ -270,36 +233,36 @@ private fun DevicesErrorContent(
 
 @Preview(showBackground = true)
 @Composable
-private fun DevicesErrorContentPreview() {
+private fun SettingsErrorContentPreview() {
     com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
-        DevicesErrorContent(message = "Произошла ошибка", onRetry = {})
+        SettingsErrorContent(message = "Произошла ошибка", onRetry = {})
     }
 }
 
 @Composable
-private fun DevicesEmptyContent(
+private fun SettingsEmptyContent(
     message: String,
     modifier: Modifier = Modifier,
 ) {
     SyncClipEmptyView(
         message = message,
-        icon = painterResource(id = DesignR.drawable.ic_clipboard_empty),
+        icon = rememberVectorPainter(Icons.Filled.Settings),
         modifier = modifier.fillMaxSize(),
     )
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun DevicesEmptyContentPreview() {
+private fun SettingsEmptyContentPreview() {
     com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
-        DevicesEmptyContent(message = "Нет привязанных устройств")
+        SettingsEmptyContent(message = "Нет данных")
     }
 }
 
 @Composable
-private fun DevicesSuccessContent(
-    devices: List<DeviceItem>,
-    onUnlinkClick: (DeviceItem) -> Unit,
+private fun SettingsSuccessContent(
+    settings: SettingsState,
+    onEvent: (SettingsEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -307,15 +270,39 @@ private fun DevicesSuccessContent(
         contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items(
-            count = devices.size,
-            key = { index -> devices[index].id },
-        ) { index ->
-            val device = devices[index]
-            DeviceCard(
-                device = device,
-                onUnlink = { onUnlinkClick(device) },
+        item {
+            ProfileCard(
+                email = settings.email,
+                onLogout = { onEvent(SettingsEvent.LogoutClicked) },
                 modifier = Modifier.padding(horizontal = 16.dp),
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(id = R.string.settings_theme_title),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            ThemeSelector(
+                theme = settings.theme,
+                onThemeChanged = { onEvent(SettingsEvent.ThemeChanged(it)) },
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(id = R.string.settings_history_title),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            HistoryDaysSelector(
+                keepHistoryDays = settings.keepHistoryDays,
+                onHistoryDaysChanged = { onEvent(SettingsEvent.HistoryDaysChanged(it)) },
             )
         }
     }
@@ -323,28 +310,15 @@ private fun DevicesSuccessContent(
 
 @Preview(showBackground = true)
 @Composable
-private fun DevicesSuccessContentPreview() {
+private fun SettingsSuccessContentPreview() {
     com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
-        DevicesSuccessContent(
-            devices = listOf(
-                DeviceItem(
-                    id = "1",
-                    name = "Pixel 8 Pro",
-                    os = "Android 15",
-                    isCurrentDevice = true,
-                    isOnline = true,
-                    lastSyncTimestamp = System.currentTimeMillis(),
-                ),
-                DeviceItem(
-                    id = "2",
-                    name = "iPhone 15",
-                    os = "iOS 17",
-                    isCurrentDevice = false,
-                    isOnline = false,
-                    lastSyncTimestamp = System.currentTimeMillis(),
-                ),
+        SettingsSuccessContent(
+            settings = SettingsState(
+                email = "user@example.com",
+                theme = AppTheme.System,
+                keepHistoryDays = 7,
             ),
-            onUnlinkClick = {},
+            onEvent = {},
         )
     }
 }
