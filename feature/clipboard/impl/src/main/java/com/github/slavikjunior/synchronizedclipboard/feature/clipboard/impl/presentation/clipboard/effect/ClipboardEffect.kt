@@ -1,10 +1,12 @@
 package com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.effect
 
+import androidx.annotation.StringRes
+
 internal sealed interface ClipboardEffect {
-    data class ShowToast(val message: String) : ClipboardEffect
+    data class ShowToast(@StringRes val messageRes: Int) : ClipboardEffect
     data class ShowSnackbar(
-        val message: String,
-        val actionLabel: String? = null,
+        @StringRes val messageRes: Int,
+        @StringRes val actionLabelRes: Int? = null,
         val onAction: (() -> Unit)? = null,
     ) : ClipboardEffect
 }

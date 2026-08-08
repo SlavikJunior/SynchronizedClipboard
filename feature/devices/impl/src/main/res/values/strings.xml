@@ -1,0 +1,14 @@
+<resources>
+    <string name="devices_title">Мои устройства</string>
+    <string name="devices_empty">Нет привязанных устройств</string>
+    <string name="devices_this_device">Это устройство</string>
+    <string name="devices_unlink_description">Отвязать устройство</string>
+    <string name="devices_error_load">Ошибка загрузки устройств</string>
+    <string name="devices_cannot_unlink_current">Нельзя отвязать текущее устройство</string>
+    <string name="devices_unlinked">Устройство «%1$s» отвязано</string>
+    <string name="devices_unlink_failed">Не удалось отвязать устройство</string>
+    <string name="devices_unlink_confirm_title">Отвязка устройства</string>
+    <string name="devices_unlink_confirm_message">Вы действительно хотите отвязать устройство «%1$s»? История синхронизации на этом устройстве будет удалена.</string>
+    <string name="devices_unlink_confirm">Отвязать</string>
+    <string name="devices_unlink_cancel">Отмена</string>
+</resources>

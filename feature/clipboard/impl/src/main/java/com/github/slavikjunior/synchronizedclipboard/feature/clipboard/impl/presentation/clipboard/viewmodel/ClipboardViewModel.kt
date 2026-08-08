@@ -8,6 +8,7 @@ import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.Delet
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.ObserveClipboardUseCase
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.PinClipboardItemUseCase
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.state.ScreenState
+import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.R
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.event.ClipboardEvent
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.effect.ClipboardEffect
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.model.ClipboardState
@@ -63,8 +64,8 @@ internal class ClipboardViewModel(
             addClipboardItemUseCase(fakeItem)
             _effect.send(
                 ClipboardEffect.ShowSnackbar(
-                    message = "Элемент добавлен",
-                    actionLabel = "Отменить",
+                    messageRes = R.string.clipboard_added,
+                    actionLabelRes = R.string.clipboard_undo,
                     onAction = {
                         viewModelScope.launch {
                             deleteClipboardItemUseCase(fakeItem.id)
@@ -77,7 +78,7 @@ internal class ClipboardViewModel(
 
     private fun onItemCopied(itemId: String) {
         viewModelScope.launch {
-            _effect.send(ClipboardEffect.ShowToast("Скопировано"))
+            _effect.send(ClipboardEffect.ShowToast(R.string.clipboard_copied))
         }
     }
 
@@ -89,8 +90,8 @@ internal class ClipboardViewModel(
             deleteClipboardItemUseCase(itemId)
             _effect.send(
                 ClipboardEffect.ShowSnackbar(
-                    message = "Удалено",
-                    actionLabel = "Отменить",
+                    messageRes = R.string.clipboard_deleted,
+                    actionLabelRes = R.string.clipboard_undo,
                     onAction = {
                         viewModelScope.launch {
                             deletedItem?.let { addClipboardItemUseCase(it) }
@@ -105,7 +106,7 @@ internal class ClipboardViewModel(
     private fun onItemPinned(itemId: String) {
         viewModelScope.launch {
             pinClipboardItemUseCase(itemId)
-            _effect.send(ClipboardEffect.ShowToast("Закрепление изменено"))
+            _effect.send(ClipboardEffect.ShowToast(R.string.clipboard_pinned_changed))
         }
     }
 }

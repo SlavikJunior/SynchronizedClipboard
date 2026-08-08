@@ -10,7 +10,7 @@ import com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.presen
  * **Единственный публичный экспорт** :feature:devices:impl (контракт AGENTS.md).
  */
 fun EntryProviderScope<NavKey>.devicesNavEntry(
-    onNavigateToTab: (Route) -> Unit = {},
+    onNavigateToTab: (Route) -> Unit,
 ) {
     entry(DevicesRoute) {
         DevicesScreen(onNavigateToTab = onNavigateToTab)

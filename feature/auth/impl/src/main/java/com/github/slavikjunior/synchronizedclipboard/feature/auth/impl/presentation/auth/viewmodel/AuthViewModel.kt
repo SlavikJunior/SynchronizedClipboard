@@ -3,6 +3,7 @@ package com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.presenta
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.state.ScreenState
+import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.R
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.presentation.auth.event.AuthEvent
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.presentation.auth.effect.AuthEffect
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.presentation.auth.model.AuthFormState
@@ -92,6 +93,7 @@ internal class AuthViewModel(
                     _state.value = ScreenState.Error(
                         it.message ?: "Ошибка входа"
                     )
+                    _effect.send(AuthEffect.ShowError(R.string.auth_error_signin))
                 },
             )
         }
@@ -107,6 +109,7 @@ internal class AuthViewModel(
                     _state.value = ScreenState.Error(
                         it.message ?: "Ошибка входа через Google"
                     )
+                    _effect.send(AuthEffect.ShowError(R.string.auth_error_google))
                 },
             )
         }

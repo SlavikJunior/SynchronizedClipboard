@@ -28,19 +28,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.widget.Toast
-import com.github.slavikjunior.synchronizedclipboard.core.designsystem.R
+import com.github.slavikjunior.synchronizedclipboard.core.designsystem.R as DesignR
+import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.R
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipBottomBar
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipEmptyView
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipErrorView
@@ -79,13 +82,15 @@ internal fun ClipboardScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is ClipboardEffect.ShowToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_SHORT).show()
                 }
 
                 is ClipboardEffect.ShowSnackbar -> {
+                    val message = context.getString(effect.messageRes)
+                    val actionLabel = effect.actionLabelRes?.let { context.getString(it) }
                     val result = snackbarHostState.showSnackbar(
-                        message = effect.message,
-                        actionLabel = effect.actionLabel,
+                        message = message,
+                        actionLabel = actionLabel,
                     )
                     if (result == SnackbarResult.ActionPerformed) {
                         effect.onAction?.invoke()
@@ -111,16 +116,19 @@ private fun ClipboardScreenContent(
     onNavigateToTab: (com.github.slavikjunior.synchronizedclipboard.core.navigation.Route) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    BackHandler(enabled = false) {
+        // На корневом табе ничего не делаем — система сама закроет activity
+    }
+
     SyncClipScaffold(
         modifier = modifier.fillMaxSize(),
-        topBar = { SyncClipTopAppBar(title = "Буфер обмена") },
+        topBar = { SyncClipTopAppBar(titleRes = R.string.clipboard_title) },
         bottomBar = {
             SyncClipBottomBar(
                 currentRoute = ClipboardRoute,
                 tabs = listOf(
                     BottomNavTab(
                         route = ClipboardRoute,
-                        title = "Буфер",
                         selectedIcon = {
                             androidx.compose.material3.Icon(
                                 imageVector = Icons.Filled.ContentCopy,
@@ -136,7 +144,6 @@ private fun ClipboardScreenContent(
                     ),
                     BottomNavTab(
                         route = DevicesRoute,
-                        title = "Устройства",
                         selectedIcon = {
                             androidx.compose.material3.Icon(
                                 imageVector = Icons.Filled.Devices,
@@ -157,7 +164,7 @@ private fun ClipboardScreenContent(
         floatingActionButton = {
             SyncClipFab(
                 onClick = { onEvent(ClipboardEvent.OnFabClicked) },
-                contentDescription = "Добавить элемент",
+                contentDescription = stringResource(id = R.string.clipboard_fab_description),
             ) {
                 androidx.compose.material3.Icon(
                     imageVector = Icons.Default.Add,
@@ -180,12 +187,12 @@ private fun ClipboardScreenContent(
             is ScreenState.Success -> {
                 val items = state.data.items
                 if (items.isEmpty()) {
-                    ClipboardEmptyContent(
-                        message = "Буфер пуст",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding),
-                    )
+                ClipboardEmptyContent(
+                    message = stringResource(id = R.string.clipboard_empty),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                )
                 } else {
                     ClipboardSuccessContent(
                         items = items,
@@ -226,6 +233,14 @@ private fun ClipboardLoadingContent(
     SyncClipLoadingView(modifier = modifier)
 }
 
+@Preview(showBackground = true)
+@Composable
+private fun ClipboardLoadingContentPreview() {
+    com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
+        ClipboardLoadingContent()
+    }
+}
+
 @Composable
 private fun ClipboardErrorContent(
     message: String,
@@ -239,6 +254,14 @@ private fun ClipboardErrorContent(
     )
 }
 
+@Preview(showBackground = true)
+@Composable
+private fun ClipboardErrorContentPreview() {
+    com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
+        ClipboardErrorContent(message = "Произошла ошибка", onRetry = {})
+    }
+}
+
 @Composable
 private fun ClipboardEmptyContent(
     message: String,
@@ -246,9 +269,17 @@ private fun ClipboardEmptyContent(
 ) {
     SyncClipEmptyView(
         message = message,
-        icon = painterResource(id = R.drawable.ic_clipboard_empty),
+        icon = painterResource(id = DesignR.drawable.ic_clipboard_empty),
         modifier = modifier,
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ClipboardEmptyContentPreview() {
+    com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
+        ClipboardEmptyContent(message = "Буфер пуст")
+    }
 }
 
 @Composable
@@ -273,6 +304,32 @@ private fun ClipboardSuccessContent(
                 onPin = { onEvent(ClipboardEvent.OnItemPinned(item.id)) },
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ClipboardSuccessContentPreview() {
+    com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
+        ClipboardSuccessContent(
+            items = listOf(
+                ClipboardItem(
+                    id = "1",
+                    text = "Пример текста из буфера обмена",
+                    timestamp = System.currentTimeMillis(),
+                    sourceDevice = "MacBook Pro",
+                    isPinned = true,
+                ),
+                ClipboardItem(
+                    id = "2",
+                    text = "Задача: реализовать E2E шифрование",
+                    timestamp = System.currentTimeMillis(),
+                    sourceDevice = "Pixel 8",
+                    isPinned = false,
+                ),
+            ),
+            onEvent = {},
+        )
     }
 }
 

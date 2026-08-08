@@ -14,6 +14,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.github.slavikjunior.synchronizedclipboard.core.navigation.Route
 
@@ -26,7 +27,6 @@ import com.github.slavikjunior.synchronizedclipboard.core.navigation.Route
  */
 data class BottomNavTab(
     val route: Route,
-    val title: String,
     val selectedIcon: @Composable () -> Unit,
     val unselectedIcon: @Composable () -> Unit,
 )
@@ -45,6 +45,7 @@ fun SyncClipBottomBar(
     ) {
         tabs.forEach { tab ->
             val selected = currentRoute == tab.route
+            val titleRes = tab.route.tabTitleRes
             NavigationBarItem(
                 selected = selected,
                 onClick = {
@@ -60,10 +61,12 @@ fun SyncClipBottomBar(
                     }
                 },
                 label = {
-                    Text(
-                        text = tab.title,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
+                    if (titleRes != null) {
+                        Text(
+                            text = stringResource(id = titleRes),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
                 },
                 alwaysShowLabel = true,
             )

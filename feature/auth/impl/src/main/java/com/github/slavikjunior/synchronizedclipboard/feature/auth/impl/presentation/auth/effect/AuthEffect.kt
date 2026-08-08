@@ -1,14 +1,7 @@
 package com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.presentation.auth.effect
 
-/**
- * One-shot side effects в MVI-архитектуре auth-фичи.
- *
- * [AuthEffect] передаётся через [kotlinx.coroutines.flow.SharedFlow] / Channel
- * и потребляется ровно один раз (unlike State). Используется для навигации
- * и transient UI-сообщений, которые не должны сохраняться в StateFlow.
- *
- * `internal` — эффекты не покидают границы :feature:auth:impl.
- */
+import androidx.annotation.StringRes
+
 internal sealed interface AuthEffect {
 
     /**
@@ -19,7 +12,7 @@ internal sealed interface AuthEffect {
 
     /**
      * Transient-сообщение об ошибке (Snackbar / Toast).
-     * @param message человеко-читаемый текст
+     * @param messageRes человеко-читаемый текст
      */
-    data class ShowError(val message: String) : AuthEffect
+    data class ShowError(@StringRes val messageRes: Int) : AuthEffect
 }

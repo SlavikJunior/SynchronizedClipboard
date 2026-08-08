@@ -1,3 +1,42 @@
 <resources>
     <string name="app_name">SynchronizedClipboard</string>
+
+    <!-- Tabs -->
+    <string name="tab_clipboard">Буфер</string>
+    <string name="tab_devices">Устройства</string>
+
+    <!-- Auth -->
+    <string name="auth_title">Вход в SynchronizedClipboard</string>
+    <string name="auth_label_login">Логин / Email</string>
+    <string name="auth_label_password">Пароль</string>
+    <string name="auth_button_signin">Войти</string>
+    <string name="auth_button_google">Войти через Google</string>
+
+    <!-- Clipboard -->
+    <string name="clipboard_title">Буфер обмена</string>
+    <string name="clipboard_fab_description">Добавить элемент</string>
+    <string name="clipboard_empty">Буфер пуст</string>
+    <string name="clipboard_added">Элемент добавлен</string>
+    <string name="clipboard_undo">Отменить</string>
+    <string name="clipboard_copied">Скопировано</string>
+    <string name="clipboard_deleted">Удалено</string>
+    <string name="clipboard_pinned_changed">Закрепление изменено</string>
+    <string name="clipboard_fake_item">Новый элемент (Fake)</string>
+
+    <!-- Devices -->
+    <string name="devices_title">Мои устройства</string>
+    <string name="devices_empty">Нет привязанных устройств</string>
+    <string name="devices_this_device">Это устройство</string>
+    <string name="devices_unlink_description">Отвязать устройство</string>
+    <string name="devices_error_load">Ошибка загрузки устройств</string>
+    <string name="devices_cannot_unlink_current">Нельзя отвязать текущее устройство</string>
+    <string name="devices_unlinked">Устройство «%1$s» отвязано</string>
+    <string name="devices_unlink_failed">Не удалось отвязать устройство</string>
+    <string name="devices_unlink_confirm_title">Отвязка устройства</string>
+    <string name="devices_unlink_confirm_message">Вы действительно хотите отвязать устройство «%1$s»? История синхронизации на этом устройстве будет удалена.</string>
+    <string name="devices_unlink_confirm">Отвязать</string>
+    <string name="devices_unlink_cancel">Отмена</string>
+
+    <!-- Common -->
+    <string name="retry">Повторить</string>
 </resources>

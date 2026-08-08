@@ -1,6 +1,7 @@
 package com.github.slavikjunior.synchronizedclipboard.feature.devices.api
 
 import com.github.slavikjunior.synchronizedclipboard.core.navigation.Route
+import com.github.slavikjunior.synchronizedclipboard.feature.devices.api.R
 import kotlinx.serialization.Serializable
 
 /**
@@ -8,5 +9,5 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data object DevicesRoute : Route {
-    override val tabTitle: String = "Устройства"
+    override val tabTitleRes: Int? = R.string.tab_devices
 }

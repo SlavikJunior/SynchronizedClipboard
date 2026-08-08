@@ -1,0 +1,9 @@
+<resources>
+    <string name="auth_title">Вход в SynchronizedClipboard</string>
+    <string name="auth_label_login">Логин / Email</string>
+    <string name="auth_label_password">Пароль</string>
+    <string name="auth_button_signin">Войти</string>
+    <string name="auth_button_google">Войти через Google</string>
+    <string name="auth_error_signin">Ошибка входа</string>
+    <string name="auth_error_google">Ошибка входа через Google</string>
+</resources>

@@ -9,9 +9,10 @@ import kotlinx.serialization.Serializable
  * `@Serializable data object` — контракт Navigation 3 (см. AGENTS.md:
  * `@Serializable` на concrete data object, а не на interface).
  * Сериализуется для сохранения backStack через NavBackStackSerializer.
+ *
+ * `tabTitleRes = null` — Auth экран не входит в BottomNav.
  */
 @Serializable
 data object AuthRoute : Route {
-    // Auth экран не входит в BottomNav — оставляем пустой заголовок.
-    override val tabTitle: String = ""
+    override val tabTitleRes: Int? = null
 }

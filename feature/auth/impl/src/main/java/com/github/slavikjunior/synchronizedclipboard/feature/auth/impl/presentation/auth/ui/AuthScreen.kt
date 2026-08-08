@@ -23,11 +23,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipErrorView
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipLoadingView
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipScaffold
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipTopAppBar
 import com.github.slavikjunior.synchronizedclipboard.core.designsystem.state.ScreenState
+import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.R
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.presentation.auth.effect.AuthEffect
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.presentation.auth.event.AuthEvent
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.presentation.auth.model.AuthFormState
@@ -56,7 +58,8 @@ internal fun AuthScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is AuthEffect.NavigateToMain -> onSignedIn()
-                is AuthEffect.ShowError -> { /* TODO: Snackbar через Scaffold отложен */
+                is AuthEffect.ShowError -> {
+                    // TODO: Snackbar через Scaffold отложен
                 }
             }
         }
@@ -86,7 +89,7 @@ private fun AuthScreenContent(
 ) {
     SyncClipScaffold(
         modifier = modifier,
-        topBar = { SyncClipTopAppBar(title = "Вход в SynchronizedClipboard") },
+        topBar = { SyncClipTopAppBar(titleRes = R.string.auth_title) },
     ) { innerPadding: PaddingValues ->
         when (screenState) {
             is ScreenState.Loading ->
@@ -120,6 +123,14 @@ private fun AuthLoadingContent(
     SyncClipLoadingView(modifier = modifier.fillMaxSize())
 }
 
+@Preview(showBackground = true)
+@Composable
+private fun AuthLoadingContentPreview() {
+    com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
+        AuthLoadingContent()
+    }
+}
+
 @Composable
 private fun AuthErrorContent(
     message: String,
@@ -131,6 +142,14 @@ private fun AuthErrorContent(
         onRetry = onRetry,
         modifier = modifier.fillMaxSize(),
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AuthErrorContentPreview() {
+    com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
+        AuthErrorContent(message = "Произошла ошибка", onRetry = {})
+    }
 }
 
 @Composable
@@ -146,12 +165,31 @@ private fun AuthSuccessContent(
     )
 }
 
+@Preview(showBackground = true)
+@Composable
+private fun AuthSuccessContentPreview() {
+    com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
+        AuthSuccessContent(
+            formState = AuthFormState(login = "user@example.com", password = "password"),
+            onEvent = {},
+        )
+    }
+}
+
 @Composable
 private fun AuthEmptyContent(
     modifier: Modifier = Modifier,
 ) {
     // Не используется для auth-формы, оставлен для единообразия
     Spacer(modifier = modifier.fillMaxSize())
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AuthEmptyContentPreview() {
+    com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
+        AuthEmptyContent()
+    }
 }
 
 /**
@@ -176,7 +214,7 @@ private fun AuthFormContent(
         OutlinedTextField(
             value = formState.login,
             onValueChange = { onEvent(AuthEvent.LoginChanged(it)) },
-            label = { Text("Логин / Email") },
+            label = { Text(text = stringResource(id = R.string.auth_label_login)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
@@ -187,7 +225,7 @@ private fun AuthFormContent(
         OutlinedTextField(
             value = formState.password,
             onValueChange = { onEvent(AuthEvent.PasswordChanged(it)) },
-            label = { Text("Пароль") },
+            label = { Text(text = stringResource(id = R.string.auth_label_password)) },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -200,7 +238,7 @@ private fun AuthFormContent(
             onClick = { onEvent(AuthEvent.SignInClick) },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Войти")
+            Text(text = stringResource(id = R.string.auth_button_signin))
         }
 
         Spacer(Modifier.height(12.dp))
@@ -209,7 +247,7 @@ private fun AuthFormContent(
             onClick = { onEvent(AuthEvent.SignInWithGoogleClick) },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Войти через Google")
+            Text(text = stringResource(id = R.string.auth_button_google))
         }
     }
 }

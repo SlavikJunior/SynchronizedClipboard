@@ -35,9 +35,9 @@ import androidx.navigation3.runtime.NavKey
  */
 interface Route : NavKey {
     /**
-     * Заголовок таба для [com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipBottomBar].
-     * По умолчанию пустая строка — экраны без нижней панели (например, авторизация)
+     * ID строкового ресурса для заголовка таба в [com.github.slavikjunior.synchronizedclipboard.core.designsystem.components.SyncClipBottomBar].
+     * По умолчанию `null` — экраны без нижней панели (например, авторизация)
      * не обязаны переопределять свойство.
      */
-    val tabTitle: String get() = ""
+    val tabTitleRes: Int? get() = null
 }

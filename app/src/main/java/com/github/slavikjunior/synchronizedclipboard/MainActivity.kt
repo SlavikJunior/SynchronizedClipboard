@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,6 +17,7 @@ import com.github.slavikjunior.synchronizedclipboard.feature.auth.api.AuthRoute
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.navigation.authNavEntry
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.ClipboardRoute
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.navigation.clipboardNavEntry
+import com.github.slavikjunior.synchronizedclipboard.feature.devices.api.DevicesRoute
 import com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.navigation.devicesNavEntry
 
 class MainActivity : ComponentActivity() {
@@ -50,9 +52,10 @@ private fun RootNavHost(
         modifier = modifier,
         entryProvider = entryProvider {
             clipboardNavEntry(onNavigateToTab = onNavigateToTab)
-            devicesNavEntry()
+            devicesNavEntry(onNavigateToTab = onNavigateToTab)
             authNavEntry(
                 onSignedIn = {
+                    backStack.remove(AuthRoute)
                     backStack.clear()
                     backStack.add(ClipboardRoute)
                 },
