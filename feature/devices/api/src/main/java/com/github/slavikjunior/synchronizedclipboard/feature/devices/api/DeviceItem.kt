@@ -1,11 +1,12 @@
 package com.github.slavikjunior.synchronizedclipboard.feature.devices.api
 
-import kotlinx.serialization.Serializable
-
 /**
  * Доменная модель устройства.
+ *
+ * **Чистая Kotlin-модель** — без фреймворк-аннотаций (`@Serializable`, `@Entity` и т.д.).
+ * Для сериализации используется [com.github.slavikjunior.synchronizedclipboard.feature.devices.impl.data.model.DeviceItemData]
+ * в :impl модуле.
  */
-@Serializable
 data class DeviceItem(
     val id: String,
     val name: String,

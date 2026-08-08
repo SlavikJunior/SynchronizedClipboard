@@ -3,7 +3,7 @@ package com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.navigati
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.api.AuthRoute
-import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.ui.AuthScreen
+import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.presentation.auth.ui.AuthScreen
 
 /**
  * **Единственный публичный экспорт** :feature:auth:impl (контракт AGENTS.md).
@@ -12,6 +12,7 @@ import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.ui.AuthSc
  * Всё остальное — `internal`: `AuthScreen`, `AuthViewModel`, форма и use case'ы.
  *
  * ## Использование в :app (Nav3Host)
+ *
  * ```kotlin
  * NavDisplay(
  *     backStack = backStack,
