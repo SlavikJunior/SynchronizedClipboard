@@ -21,8 +21,10 @@ room = "2.8.4"
 ksp = "2.3.10"
 # Koin 4.x — compiler plugin (KSP deprecated, теперь Kotlin Compiler Plugin)
 koin = "4.2.2"
-# Koin Compiler Plugin Gradle — заменяет ksp-обработку Koin Annotations
+# Koin Compiler Plugin Gradle — заменяет ksp-обработку Koin Annotations (4.x)
 koinCompilerPlugin = "1.1.0"
+# Coroutines
+kotlinxCoroutines = "1.11.0"
 
 [libraries]
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
@@ -67,6 +69,8 @@ koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = 
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 # Аннотации Koin 4.x (@Module, @Single, @ComponentScan)
 koin-annotations = { group = "io.insert-koin", name = "koin-annotations", version.ref = "koin" }
+# Coroutines
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -57,6 +57,8 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:database"))
     implementation(project(":core:crypto"))
+    implementation(project(":core:di"))
+    implementation(project(":core:cache"))
     implementation(project(":feature:auth:api"))
     implementation(project(":feature:auth:impl"))
     implementation(project(":feature:clipboard:api"))

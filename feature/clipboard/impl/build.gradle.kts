@@ -15,6 +15,9 @@ dependencies {
     implementation(project(":feature:settings:api"))
 
     implementation(project(":core:crypto"))
+    implementation(project(":core:database"))
+    implementation(project(":core:cache"))
+    implementation(project(":core:di"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -5,6 +5,10 @@ import com.github.slavikjunior.synchronizedclipboard.core.database.di.DatabaseMo
 import com.github.slavikjunior.synchronizedclipboard.core.database.di.module as databaseModule
 import com.github.slavikjunior.synchronizedclipboard.core.crypto.di.CryptoModule
 import com.github.slavikjunior.synchronizedclipboard.core.crypto.di.module as cryptoModule
+import com.github.slavikjunior.synchronizedclipboard.core.di.DiModule
+import com.github.slavikjunior.synchronizedclipboard.core.di.module as diModule
+import com.github.slavikjunior.synchronizedclipboard.core.cache.di.CacheModule
+import com.github.slavikjunior.synchronizedclipboard.core.cache.di.module as cacheModule
 import com.github.slavikjunior.synchronizedclipboard.core.network.NetworkModule
 import com.github.slavikjunior.synchronizedclipboard.core.network.module as networkModule
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.AuthModule
@@ -34,6 +38,8 @@ class SyncClipApplication : Application() {
                 NetworkModule().networkModule(),
                 DatabaseModule().databaseModule(),
                 CryptoModule().cryptoModule(),
+                DiModule().diModule(),
+                CacheModule().cacheModule(),
                 AuthModule().authModule(),
                 ClipboardModule().clipboardModule(),
                 DevicesModule().devicesModule(),

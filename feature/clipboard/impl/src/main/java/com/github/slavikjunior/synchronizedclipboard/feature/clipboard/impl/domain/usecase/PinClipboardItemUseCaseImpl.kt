@@ -1,12 +1,12 @@
 package com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.domain.usecase
 
+import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.ClipboardRepository
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.PinClipboardItemUseCase
-import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.domain.repository.FakeClipboardRepository
 import org.koin.core.annotation.Single
 
 @Single
-internal class FakePinClipboardItemUseCase(
-    private val repository: FakeClipboardRepository,
+internal class PinClipboardItemUseCaseImpl(
+    private val repository: ClipboardRepository,
 ) : PinClipboardItemUseCase {
     override suspend operator fun invoke(id: String) = repository.pinItem(id)
 }

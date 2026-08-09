@@ -3,6 +3,7 @@ package com.github.slavikjunior.synchronizedclipboard.core.database.di
 import android.content.Context
 import androidx.room.Room
 import com.github.slavikjunior.synchronizedclipboard.core.database.datasource.AppDatabase
+import com.github.slavikjunior.synchronizedclipboard.core.database.dao.ClipboardDao
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
@@ -27,5 +28,9 @@ class DatabaseModule {
             context = context,
             klass = AppDatabase::class.java,
             name = "syncclip-db",
-        ).build()
+        ).fallbackToDestructiveMigration()
+        .build()
+
+    @Single
+    fun clipboardDao(database: AppDatabase): ClipboardDao = database.clipboardDao()
 }
