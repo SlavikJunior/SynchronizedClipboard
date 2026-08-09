@@ -83,8 +83,11 @@ private fun ClipboardScreenContent(state: ScreenState<ClipboardState>, onEvent: 
 Используется **Koin Compiler Plugin** (Kotlin Compiler Plugin, не KSP). Модули регистрируются через `@Module @ComponentScan`:
 
 - `NetworkModule` — `HttpClient` (Ktor + OkHttp)
-- `DatabaseModule` — Room `AppDatabase`
-- `AuthModule`, `ClipboardModule`, `DevicesModule` — фича-модули
+- `DatabaseModule` — Room `AppDatabase` + `ClipboardDao`
+- `CryptoModule` — `CryptoManager` (AES-256-GCM)
+- `DiModule` — 4 `CoroutineDispatcher` через `@Named` (`io_dispatcher`, `main_dispatcher`, `default_dispatcher`, `main_immediate_dispatcher`)
+- `CacheModule` — `ReactiveCache<String, Any>` + типизированный `ClipboardLRU` в `ClipboardModule`
+- `AuthModule`, `ClipboardModule`, `DevicesModule`, `SettingsModule` — фича-модули
 
 Запуск Koin в `SyncClipApplication.kt`:
 ```kotlin
@@ -93,11 +96,15 @@ startKoin {
     androidContext(this@SyncClipApplication)
     modules(
         jsonModule,
-        NetworkModule().networkModule,
-        DatabaseModule().databaseModule,
-        AuthModule().authModule,
-        ClipboardModule().clipboardModule,
-        DevicesModule().devicesModule,
+        NetworkModule().networkModule(),
+        DatabaseModule().databaseModule(),
+        CryptoModule().cryptoModule(),
+        DiModule().diModule(),
+        CacheModule().cacheModule(),
+        AuthModule().authModule(),
+        ClipboardModule().clipboardModule(),
+        DevicesModule().devicesModule(),
+        SettingsModule().settingsModule(),
     )
 }
 ```
@@ -115,6 +122,7 @@ interface Route : NavKey {
 - `AuthRoute` — экран авторизации (без BottomBar, `tabTitleRes = null`)
 - `ClipboardRoute` — буфер обмена (`tabTitleRes = R.string.tab_clipboard`)
 - `DevicesRoute` — устройства (`tabTitleRes = R.string.tab_devices`)
+- `SettingsRoute` — настройки (`tabTitleRes = R.string.tab_settings`)
 
 **Tab switching** — предотвращает дубликаты в backstack:
 ```kotlin
@@ -149,10 +157,14 @@ val onNavigateToTab: (Route) -> Unit = { route ->
 :core:navigation                  # Route : NavKey, tabTitleRes
 :core:designsystem                # Тема, Scaffold, BottomBar, TopAppBar, FAB, AlertDialog, Loading/Error/Empty
 :core:network                     # Ktor HttpClient, NetworkModule
-:core:database                    # Room AppDatabase, DatabaseModule
+:core:database                    # Room AppDatabase, DatabaseModule, ClipboardItemEntity, ClipboardDao
+:core:crypto                      # AES-256-GCM/AndroidKeyStore, CryptoManager, CryptoModule
+:core:di                          # CoroutineDispatcher qualifiers (io/main/default/main_immediate)
+:core:cache                       # ReactiveCache<K,V> + LruReactiveCache, CacheModule
 :feature:auth:{api,impl}          # Авторизация
-:feature:clipboard:{api,impl}     # Буфер обмена + Bottom Navigation
+:feature:clipboard:{api,impl}     # Буфер обмена + Bottom Navigation + Share Target + Quick Tile
 :feature:devices:{api,impl}       # Устройства + Bottom Navigation
+:feature:settings:{api,impl}      # Настройки (тема, история, выход)
 build-logic/convention            # 5 convention-плагинов + AndroidModuleConfig
 ```
 
@@ -183,11 +195,28 @@ build-logic/convention            # 5 convention-плагинов + AndroidModul
 - Обработка ошибок загрузки.
 
 ### Планы развития
-- `:feature:settings` — настройки профиля, уведомлений, темы.
 - **WebSocket/SSE** реалтайм-синхронизация буфера между устройствами.
-- **E2E шифрование** — клиентское шифрование перед отправкой.
-- TileService (Quick Settings Tile).
-- Share Target (ACTION_SEND).
+- **DataStore** для persistence настроек.
+
+## Системные интеграции
+
+### Share Target
+- `ShareActivity` (`ComponentActivity`, `KoinComponent`) в `:feature:clipboard:impl/presentation/system/`.
+- Обрабатывает `ACTION_SEND` (`text/plain`), сохраняет через `AddClipboardItemUseCase` (`sourceDevice = "Share"`).
+- Прозрачная тема `Theme.SyncClip.Transparent`.
+
+### Quick Settings Tile
+- `ClipboardTileService` (`TileService`) + `TileActionActivity` (`ComponentActivity`, `KoinComponent`).
+- `onClick()` → `PendingIntent.getActivity(...).send()` → читает системный `ClipboardManager`, сохраняет через `AddClipboardItemUseCase` (`sourceDevice = "Quick Tile"`).
+- `TileActionActivity` — `exported="false"`, `taskAffinity=""`, прозрачная тема.
+
+## E2E шифрование
+
+- Модуль `:core:crypto` (`buildFeatures { compose = false }`).
+- `CryptoManager` — интерфейс `encrypt`/`decrypt`.
+- `CryptoManagerImpl` — `@Single`, AES-256-GCM/NoPadding, ключ в AndroidKeyStore (alias `syncclip_clipboard_key`).
+- Формат: `Base64(IV):Base64(cipherText)`. При ошибке расшифровки — `"🔒 [Ошибка расшифровки]"`.
+- В `:feature:clipboard:impl` шифрование/расшифровка происходит в UseCase'ах (`FakeAddClipboardItemUseCase`, `FakeObserveClipboardUseCase`), репозиторий хранит только зашифрованный текст.
 
 ## UI и Дизайн-система
 
@@ -220,7 +249,9 @@ build-logic/convention            # 5 convention-плагинов + AndroidModul
 
 ### Room KMP
 
-- `AppDatabase` в `:core:database` (заглушка `DummyEntity` для генерации).
+- `AppDatabase` в `:core:database` (`entities = [DummyEntity::class, ClipboardItemEntity::class]`, version 2).
+- `ClipboardItemEntity` — `@Entity(tableName = "clipboard_items")` с `id`, `encryptedText`, `timestamp`, `sourceDevice`, `isPinned`.
+- `ClipboardDao` — только `suspend` методы без Flow: `getAll()`, `insert()`, `deleteById()`.
 - `fallbackToDestructiveMigration()` для MVP.
 - DI через `DatabaseModule`.
 
@@ -232,10 +263,11 @@ build-logic/convention            # 5 convention-плагинов + AndroidModul
 
 ### Fake-репозитории
 
-Для MVP все данные — in-memory `MutableStateFlow`:
+Для MVP данные хранятся в памяти или локально:
 
-- **Clipboard**: 4 стабовых элемента (текст, timestamp, sourceDevice, isPinned).
+- **Clipboard** (`ClipboardRepositoryImpl` в `domain/repository/`): Write-Through Cache через `ReactiveCache` (`:core:cache`). Источник истины для UI — in-memory LRU-кеш с `MutableStateFlow`. Room используется как глухое хранилище без Flow. Кеш прогревается из БД при первом `observeClipboard()`. Мутации (`add/delete/pin`) сразу попадают в кеш, запись в БД — fire-and-forget корутина.
 - **Devices**: 3 устройства (Pixel 8 Pro текущее, MacBook Pro, iPhone 15).
+- **Settings** (`FakeSettingsRepository` в `data/local/repositories/`): in-memory хранение настроек темы и дней истории.
 
 ### Модели данных
 
@@ -442,12 +474,13 @@ User (1) ──< (N) Device
 ## Roadmap
 
 - [x] `:core:navigation`, `:core:designsystem`, `:core:network`, `:core:database`
-- [x] `:feature:auth`, `:feature:clipboard`, `:feature:devices`
-- [ ] `:feature:settings`
+- [x] `:core:crypto` — AES-256-GCM/AndroidKeyStore
+- [x] `:core:di` — CoroutineDispatcher qualifiers
+- [x] `:core:cache` — ReactiveCache + Write-Through Cache
+- [x] `:feature:auth`, `:feature:clipboard`, `:feature:devices`, `:feature:settings`
+- [x] Share Target (`ACTION_SEND`) + Quick Settings Tile
 - [ ] Реалтайм WebSocket/SSE синхронизация
-- [ ] E2E шифрование
-- [ ] TileService (Quick Settings Tile)
-- [ ] Share Target (ACTION_SEND)
+- [ ] DataStore для persistence настроек
 
 ## Лицензия
 
