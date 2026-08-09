@@ -24,6 +24,35 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Share Target: обработка ACTION_SEND text/plain -->
+        <activity
+            android:name="com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.system.ShareActivity"
+            android:exported="true"
+            android:theme="@style/Theme.SyncClip.Transparent">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
+        <!-- Quick Settings Tile: прозрачная Activity для запуска из плитки -->
+        <activity
+            android:name="com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.system.TileActionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SyncClip.Transparent"
+            android:taskAffinity="" />
+
+        <!-- Quick Settings Tile Service -->
+        <service
+            android:name="com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.system.ClipboardTileService"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
