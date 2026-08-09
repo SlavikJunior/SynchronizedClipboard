@@ -3,6 +3,8 @@ package com.github.slavikjunior.synchronizedclipboard
 import android.app.Application
 import com.github.slavikjunior.synchronizedclipboard.core.database.di.DatabaseModule
 import com.github.slavikjunior.synchronizedclipboard.core.database.di.module as databaseModule
+import com.github.slavikjunior.synchronizedclipboard.core.crypto.di.CryptoModule
+import com.github.slavikjunior.synchronizedclipboard.core.crypto.di.module as cryptoModule
 import com.github.slavikjunior.synchronizedclipboard.core.network.NetworkModule
 import com.github.slavikjunior.synchronizedclipboard.core.network.module as networkModule
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.AuthModule
@@ -31,6 +33,7 @@ class SyncClipApplication : Application() {
                 jsonModule,
                 NetworkModule().networkModule(),
                 DatabaseModule().databaseModule(),
+                CryptoModule().cryptoModule(),
                 AuthModule().authModule(),
                 ClipboardModule().clipboardModule(),
                 DevicesModule().devicesModule(),
