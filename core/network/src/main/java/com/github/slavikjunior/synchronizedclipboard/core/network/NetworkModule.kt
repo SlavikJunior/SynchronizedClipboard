@@ -5,11 +5,13 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json as SerializationJson
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
+import org.koin.dsl.module
 
 /**
  * Koin DI-модуль для сетевого слоя.
@@ -22,7 +24,7 @@ import org.koin.core.annotation.Single
 class NetworkModule {
 
     /**
-     * HTTP-клиент Ktor с OkHttp engine, ContentNegotiation (JSON) и Logging.
+     * HTTP-клиент Ktor с OkHttp engine, ContentNegotiation (JSON), Logging и WebSockets.
      * @Single = singleton в Koin graph.
      */
     @Single
@@ -35,5 +37,14 @@ class NetworkModule {
         install(Logging) {
             level = LogLevel.BODY
         }
+        install(WebSockets) {
+        }
+    }
+
+    /**
+     * Возвращает Koin-модуль для регистрации в [startKoin].
+     */
+    fun networkModule() = module {
+        single { httpClient(get()) }
     }
 }

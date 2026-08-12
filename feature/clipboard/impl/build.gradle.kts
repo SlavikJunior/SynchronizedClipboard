@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":core:database"))
     implementation(project(":core:cache"))
     implementation(project(":core:di"))
+    implementation(project(":core:network"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

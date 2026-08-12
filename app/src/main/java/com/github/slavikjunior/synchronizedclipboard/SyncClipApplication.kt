@@ -10,7 +10,6 @@ import com.github.slavikjunior.synchronizedclipboard.core.di.module as diModule
 import com.github.slavikjunior.synchronizedclipboard.core.cache.di.CacheModule
 import com.github.slavikjunior.synchronizedclipboard.core.cache.di.module as cacheModule
 import com.github.slavikjunior.synchronizedclipboard.core.network.NetworkModule
-import com.github.slavikjunior.synchronizedclipboard.core.network.module as networkModule
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.AuthModule
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.module as authModule
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.ClipboardModule
