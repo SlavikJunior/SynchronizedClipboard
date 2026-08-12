@@ -195,7 +195,6 @@ build-logic/convention            # 5 convention-плагинов + AndroidModul
 - Обработка ошибок загрузки.
 
 ### Планы развития
-- **WebSocket/SSE** реалтайм-синхронизация буфера между устройствами.
 - **DataStore** для persistence настроек.
 
 ## Системные интеграции
@@ -216,7 +215,7 @@ build-logic/convention            # 5 convention-плагинов + AndroidModul
 - `CryptoManager` — интерфейс `encrypt`/`decrypt`.
 - `CryptoManagerImpl` — `@Single`, AES-256-GCM/NoPadding, ключ в AndroidKeyStore (alias `syncclip_clipboard_key`).
 - Формат: `Base64(IV):Base64(cipherText)`. При ошибке расшифровки — `"🔒 [Ошибка расшифровки]"`.
-- В `:feature:clipboard:impl` шифрование/расшифровка происходит в UseCase'ах (`FakeAddClipboardItemUseCase`, `FakeObserveClipboardUseCase`), репозиторий хранит только зашифрованный текст.
+- В `:feature:clipboard:impl` шифрование/расшифровка происходит в `ClipboardRepositoryImpl` (через `CryptoManager`). UseCase'ы работают с доменными моделями, репозиторий отвечает за E2E-шифрование.
 
 ## UI и Дизайн-система
 
@@ -261,11 +260,20 @@ build-logic/convention            # 5 convention-плагинов + AndroidModul
 - ContentNegotiation: `kotlinx.serialization.Json` (ignoreUnknownKeys, isLenient).
 - Logging на уровне BODY для debug.
 
+### WebSocket (реализован)
+
+- `KtorNetworkSyncApi` (`@Single`) в `:core:network` — точка интеграции WebSocket в клиент.
+- Подключение к `ws://localhost:8080/sync` (MVP адрес).
+- Входящий поток: `observeIncomingItems(): Flow<EncryptedClipboardDto>` — постоянный слушатель с реконнектом и exponential backoff (1s → 30s).
+- Исходящий поток: `sendItem(item: EncryptedClipboardDto)` — открывает короткий сеанс для отправки одного элемента.
+- Внутренний `MutableSharedFlow<EncryptedClipboardDto>` (extraBufferCapacity = 64) буферизирует входящие сообщения между WebSocket-сессией и consumer'ом.
+- `NetworkModule` регистрирует `HttpClient` с плагином `WebSockets` и экспонирует `networkModule()` для Koin.
+
 ### Fake-репозитории
 
 Для MVP данные хранятся в памяти или локально:
 
-- **Clipboard** (`ClipboardRepositoryImpl` в `domain/repository/`): Write-Through Cache через `ReactiveCache` (`:core:cache`). Источник истины для UI — in-memory LRU-кеш с `MutableStateFlow`. Room используется как глухое хранилище без Flow. Кеш прогревается из БД при первом `observeClipboard()`. Мутации (`add/delete/pin`) сразу попадают в кеш, запись в БД — fire-and-forget корутина.
+- **Clipboard** (`ClipboardRepositoryImpl` в `domain/repository/`): Write-Through Cache через `ReactiveCache` (`:core:cache`). Источник истины для UI — in-memory LRU-кеш с `MutableStateFlow`. Room используется как глухое хранилище без Flow. Кеш прогревается из БД при первом `observeClipboard()`. Мутации (`add/delete/pin`) сразу попадают в кеш, запись в БД — fire-and-forget корутина. Входящие элементы из WebSocket расшифровываются через `CryptoManager` и записываются в кеш + Room. Исходящие элементы отправляются в сеть после записи в кеш/БД.
 - **Devices**: 3 устройства (Pixel 8 Pro текущее, MacBook Pro, iPhone 15).
 - **Settings** (`FakeSettingsRepository` в `data/local/repositories/`): in-memory хранение настроек темы и дней истории.
 
@@ -300,7 +308,7 @@ data class DeviceItem(
 ### Общая стратегия
 
 - **REST API** — синхронные операции: auth, CRUD clipboard, управление устройствами.
-- **WebSocket** — реалтайм-синхронизация clipboard и presence устройств.
+- **WebSocket** — реалтайм-синхронизация clipboard и presence устройств (реализован в `:core:network`).
 - **Ktor Client** — единственная точка входа в сеть. Все запросы идут через `HttpClient` из `NetworkModule`.
 - **Аутентификация** — JWT `accessToken` / `refreshToken`, заголовок `Authorization: Bearer <token>`.
 - **Обработка ошибок** — на уровне Repository обёртываются в `Result<T>` или `Flow<ScreenState>`, ViewModel переводит в `ScreenState.Error`.
@@ -479,7 +487,7 @@ User (1) ──< (N) Device
 - [x] `:core:cache` — ReactiveCache + Write-Through Cache
 - [x] `:feature:auth`, `:feature:clipboard`, `:feature:devices`, `:feature:settings`
 - [x] Share Target (`ACTION_SEND`) + Quick Settings Tile
-- [ ] Реалтайм WebSocket/SSE синхронизация
+- [x] WebSocket E2E-синхронизация (`KtorNetworkSyncApi` + `EncryptedClipboardDto`)
 - [ ] DataStore для persistence настроек
 
 ## Лицензия
