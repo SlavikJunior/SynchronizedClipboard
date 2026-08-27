@@ -4,6 +4,17 @@ import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.model.UserSettings
 
 /**
+ * Флаг активной записи в DataStore. Позволяет UI показывать индикатор
+ * "сохранение..." для конкретного поля (theme или historyDays), не блокируя
+ * весь экран. После успеха/ошибки снимается.
+ */
+internal enum class SaveInFlight {
+    None,
+    Theme,
+    HistoryDays,
+}
+
+/**
  * UI-стейт экрана настроек.
  *
  * Инкапсулирует данные для отображения: профиль, выбранная тема,
@@ -14,6 +25,7 @@ internal data class SettingsState(
     val email: String = "",
     val theme: AppTheme = AppTheme.System,
     val keepHistoryDays: Int = 7,
+    val saveInFlight: SaveInFlight = SaveInFlight.None,
 ) {
     companion object {
         fun from(settings: UserSettings): SettingsState =

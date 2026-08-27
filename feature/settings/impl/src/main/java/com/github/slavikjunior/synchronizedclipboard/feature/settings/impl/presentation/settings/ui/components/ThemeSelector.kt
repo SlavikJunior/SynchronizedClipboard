@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,9 +14,18 @@ import androidx.compose.ui.unit.dp
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.model.AppTheme
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.R
 
+/**
+ * Группа FilterChip для выбора темы: Light / Dark / System.
+ *
+ * @param theme текущая выбранная тема.
+ * @param isSaving true, пока идёт запись в DataStore (используется для блокировки
+ *                 UI до завершения optimistic update + UseCase).
+ * @param onThemeChanged колбэк выбора новой темы.
+ */
 @Composable
 fun ThemeSelector(
     theme: AppTheme,
+    isSaving: Boolean = false,
     onThemeChanged: (AppTheme) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -29,18 +37,21 @@ fun ThemeSelector(
     ) {
         FilterChip(
             selected = theme == AppTheme.Light,
+            enabled = !isSaving,
             onClick = { onThemeChanged(AppTheme.Light) },
             label = { Text(text = stringResource(id = R.string.settings_theme_light)) },
             modifier = Modifier.weight(1f),
         )
         FilterChip(
             selected = theme == AppTheme.Dark,
+            enabled = !isSaving,
             onClick = { onThemeChanged(AppTheme.Dark) },
             label = { Text(text = stringResource(id = R.string.settings_theme_dark)) },
             modifier = Modifier.weight(1f),
         )
         FilterChip(
             selected = theme == AppTheme.System,
+            enabled = !isSaving,
             onClick = { onThemeChanged(AppTheme.System) },
             label = { Text(text = stringResource(id = R.string.settings_theme_system)) },
             modifier = Modifier.weight(1f),
@@ -53,5 +64,13 @@ fun ThemeSelector(
 private fun ThemeSelectorPreview() {
     com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
         ThemeSelector(theme = AppTheme.System, onThemeChanged = {})
+    }
+}
+
+@Preview(showBackground = true, name = "Theme saving")
+@Composable
+private fun ThemeSelectorSavingPreview() {
+    com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
+        ThemeSelector(theme = AppTheme.Dark, isSaving = true, onThemeChanged = {})
     }
 }

@@ -25,6 +25,13 @@ internal class DataStoreSettingsRepository(
         )
     }
 
+    override suspend fun updateKeepHistoryDays(days: Int): Result<Unit> = try {
+        settingsDataStore.saveKeepHistoryDays(days)
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
     override suspend fun updateTheme(theme: AppTheme): Result<Unit> = try {
         settingsDataStore.saveTheme(theme)
         Result.success(Unit)

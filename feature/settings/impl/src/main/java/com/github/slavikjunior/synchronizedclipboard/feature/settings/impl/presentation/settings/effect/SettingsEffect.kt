@@ -6,4 +6,5 @@ package com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.pres
 internal sealed interface SettingsEffect {
     data object LogoutCompleted : SettingsEffect
     data class ShowError(val messageRes: Int) : SettingsEffect
+    data class ShowErrorWithMessageText(val message: String) : SettingsEffect
 }

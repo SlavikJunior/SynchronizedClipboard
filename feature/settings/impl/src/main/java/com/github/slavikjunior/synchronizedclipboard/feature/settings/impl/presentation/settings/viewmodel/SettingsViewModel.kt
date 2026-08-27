@@ -6,10 +6,12 @@ import com.github.slavikjunior.synchronizedclipboard.core.designsystem.state.Scr
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.model.AppTheme
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.usecase.LogoutUseCase
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.usecase.ObserveSettingsUseCase
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.usecase.UpdateKeepHistoryDaysUseCase
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.usecase.UpdateThemeUseCase
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.R
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.effect.SettingsEffect
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.event.SettingsEvent
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.model.SaveInFlight
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.model.SettingsState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +31,7 @@ import org.koin.core.annotation.KoinViewModel
 @KoinViewModel
 internal class SettingsViewModel(
     private val observeSettingsUseCase: ObserveSettingsUseCase,
+    private val updateKeepHistoryDaysUseCase: UpdateKeepHistoryDaysUseCase,
     private val updateThemeUseCase: UpdateThemeUseCase,
     private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
@@ -56,21 +59,88 @@ internal class SettingsViewModel(
     }
 
     private fun onThemeChanged(event: SettingsEvent.ThemeChanged) {
+        // Снимок текущего успешного state для возможного отката.
+        val previous: SettingsState? = (state.value as? ScreenState.Success)?.data
+
+        // Optimistic update — UI реагирует мгновенно, плюс флаг "сохранение".
+        if (previous != null) {
+            _state.update {
+                ScreenState.Success(
+                    previous.copy(
+                        theme = event.theme,
+                        saveInFlight = SaveInFlight.Theme,
+                    ),
+                )
+            }
+        }
+
         viewModelScope.launch {
             updateThemeUseCase(event.theme).fold(
-                onSuccess = { /* state обновится через observeSettings */ },
-                onFailure = {
-                    _effect.send(SettingsEffect.ShowError(R.string.settings_error_generic))
+                onSuccess = {
+                    // Снимаем флаг записи. Значение theme в state уже консистентно
+                    // с DataStore (init { observeSettingsUseCase() } подтвердит это
+                    // при следующей эмиссии).
+                    clearSaveInFlight()
+                },
+                onFailure = { cause ->
+                    // Rollback к предыдущему значению.
+                    if (previous != null) {
+                        _state.update { ScreenState.Success(previous) }
+                    }
+                    _effect.send(SettingsEffect.ShowErrorWithMessageText(cause.message.orEmpty()))
                 },
             )
         }
     }
 
     private fun onHistoryDaysChanged(event: SettingsEvent.HistoryDaysChanged) {
+        // Снимок текущего успешного state для возможного отката.
+        val previous: SettingsState? = (state.value as? ScreenState.Success)?.data
+
+        // Optimistic update — UI реагирует мгновенно, плюс флаг "сохранение".
+        if (previous != null) {
+            _state.update {
+                ScreenState.Success(
+                    previous.copy(
+                        keepHistoryDays = event.days,
+                        saveInFlight = SaveInFlight.HistoryDays,
+                    ),
+                )
+            }
+        }
+
         viewModelScope.launch {
-            // TODO: реализовать UseCase сохранения keepHistoryDays
-            val current = (_state.value as? ScreenState.Success)?.data ?: SettingsState()
-            _state.update { ScreenState.Success(current.copy(keepHistoryDays = event.days)) }
+            updateKeepHistoryDaysUseCase(event.days).fold(
+                onSuccess = {
+                    // Снимаем флаг записи. Значение keepHistoryDays в state уже
+                    // консистентно с DataStore (init { observeSettingsUseCase() }
+                    // подтвердит это при следующей эмиссии).
+                    clearSaveInFlight()
+                },
+                onFailure = { cause ->
+                    // Rollback к предыдущему значению.
+                    if (previous != null) {
+                        _state.update { ScreenState.Success(previous) }
+                    }
+                    _effect.send(SettingsEffect.ShowErrorWithMessageText(cause.message.orEmpty()))
+                },
+            )
+        }
+    }
+
+    /**
+     * Снимает флаг активной записи в state, если state находится в [ScreenState.Success]
+     * и `saveInFlight` отличен от [SaveInFlight.None]. Используется после успешной
+     * записи в DataStore, когда сам `init { observeSettingsUseCase() }` подхватит
+     * изменение. Корректно работает с `out`-вариантностью [ScreenState].
+     */
+    private fun clearSaveInFlight() {
+        val current = _state.value
+        if (current !is ScreenState.Success) return
+        val data = current.data
+        if (data.saveInFlight == SaveInFlight.None) return
+        _state.update {
+            ScreenState.Success(data.copy(saveInFlight = SaveInFlight.None))
         }
     }
 

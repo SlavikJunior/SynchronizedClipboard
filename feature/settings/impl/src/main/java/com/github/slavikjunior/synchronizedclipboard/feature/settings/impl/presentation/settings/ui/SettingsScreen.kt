@@ -47,6 +47,7 @@ import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.naviga
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.R
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.effect.SettingsEffect
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.event.SettingsEvent
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.model.SaveInFlight
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.model.SettingsState
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.ui.components.HistoryDaysSelector
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.ui.components.ProfileCard
@@ -77,6 +78,9 @@ internal fun SettingsScreen(
                 is SettingsEffect.LogoutCompleted -> onLogout()
                 is SettingsEffect.ShowError -> {
                     snackbarHostState.showSnackbar(context.getString(effect.messageRes))
+                }
+                is SettingsEffect.ShowErrorWithMessageText -> {
+                    snackbarHostState.showSnackbar(effect.message)
                 }
             }
         }
@@ -287,6 +291,7 @@ private fun SettingsSuccessContent(
             )
             ThemeSelector(
                 theme = settings.theme,
+                isSaving = settings.saveInFlight == SaveInFlight.Theme,
                 onThemeChanged = { onEvent(SettingsEvent.ThemeChanged(it)) },
             )
         }
@@ -301,6 +306,7 @@ private fun SettingsSuccessContent(
             )
             HistoryDaysSelector(
                 keepHistoryDays = settings.keepHistoryDays,
+                isSaving = settings.saveInFlight == SaveInFlight.HistoryDays,
                 onHistoryDaysChanged = { onEvent(SettingsEvent.HistoryDaysChanged(it)) },
             )
         }
@@ -316,6 +322,38 @@ private fun SettingsSuccessContentPreview() {
                 email = "user@example.com",
                 theme = AppTheme.System,
                 keepHistoryDays = 7,
+            ),
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Saving theme")
+@Composable
+private fun SettingsSuccessContentSavingThemePreview() {
+    com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
+        SettingsSuccessContent(
+            settings = SettingsState(
+                email = "user@example.com",
+                theme = AppTheme.Dark,
+                keepHistoryDays = 7,
+                saveInFlight = SaveInFlight.Theme,
+            ),
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Saving history days")
+@Composable
+private fun SettingsSuccessContentSavingHistoryPreview() {
+    com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
+        SettingsSuccessContent(
+            settings = SettingsState(
+                email = "user@example.com",
+                theme = AppTheme.System,
+                keepHistoryDays = 30,
+                saveInFlight = SaveInFlight.HistoryDays,
             ),
             onEvent = {},
         )

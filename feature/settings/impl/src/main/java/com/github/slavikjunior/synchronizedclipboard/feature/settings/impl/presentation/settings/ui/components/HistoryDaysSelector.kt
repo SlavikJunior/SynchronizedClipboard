@@ -13,7 +13,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,10 +24,19 @@ import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.R
 
 private val HISTORY_DAYS_OPTIONS = listOf(7, 14, 30, 90)
 
+/**
+ * Dropdown для выбора срока хранения истории буфера обмена.
+ *
+ * @param keepHistoryDays текущее значение (дней).
+ * @param isSaving true, пока идёт запись в DataStore (блокирует открытие
+ *                 dropdown и делает text field неинтерактивным).
+ * @param onHistoryDaysChanged колбэк выбора нового значения.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryDaysSelector(
     keepHistoryDays: Int,
+    isSaving: Boolean = false,
     onHistoryDaysChanged: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -48,14 +56,15 @@ fun HistoryDaysSelector(
         )
 
         ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
+            expanded = expanded && !isSaving,
+            onExpandedChange = { if (!isSaving) expanded = !expanded },
             modifier = Modifier.weight(1f),
         ) {
             OutlinedTextField(
                 value = stringResource(id = R.string.settings_history_days, keepHistoryDays),
                 onValueChange = {},
                 readOnly = true,
+                enabled = !isSaving,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier.menuAnchor(),
             )
@@ -83,5 +92,13 @@ fun HistoryDaysSelector(
 private fun HistoryDaysSelectorPreview() {
     com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
         HistoryDaysSelector(keepHistoryDays = 7, onHistoryDaysChanged = {})
+    }
+}
+
+@Preview(showBackground = true, name = "History days saving")
+@Composable
+private fun HistoryDaysSelectorSavingPreview() {
+    com.github.slavikjunior.synchronizedclipboard.core.designsystem.theme.SyncClipTheme {
+        HistoryDaysSelector(keepHistoryDays = 30, isSaving = true, onHistoryDaysChanged = {})
     }
 }
