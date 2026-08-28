@@ -7,8 +7,14 @@ plugins {
 android {
     namespace = "com.github.slavikjunior.synchronizedclipboard.core.network"
 
+    defaultConfig {
+        buildConfigField("String", "SYNC_HOST", "\"10.0.2.2\"")
+        buildConfigField("int", "SYNC_PORT", "8080")
+    }
+
     // :core:network — чисто backend-модуль (Ktor), без UI.
     buildFeatures {
+        buildConfig = true
         compose = false
     }
 }

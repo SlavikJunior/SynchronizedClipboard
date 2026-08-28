@@ -21,6 +21,8 @@ import kotlinx.serialization.json.Json
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
 import android.util.Log
+import com.github.slavikjunior.synchronizedclipboard.core.network.BuildConfig
+import kotlinx.coroutines.CoroutineExceptionHandler
 
 @Single
 internal class KtorNetworkSyncApi(
@@ -29,7 +31,11 @@ internal class KtorNetworkSyncApi(
     @Named("default_dispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : NetworkSyncApi {
 
-    private val scope = CoroutineScope(defaultDispatcher + SupervisorJob())
+    private val scope = CoroutineScope(
+        defaultDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, exception ->
+            Log.w(tag, "Unhandled exception in KtorNetworkSyncApi scope", exception)
+        }
+    )
     private val tag = "KtorNetworkSyncApi"
 
     private val _incomingItems = MutableSharedFlow<EncryptedClipboardDto>(extraBufferCapacity = 64)
@@ -38,9 +44,18 @@ internal class KtorNetworkSyncApi(
     override suspend fun observeIncomingItems(): Flow<EncryptedClipboardDto> = incomingItems
 
     override suspend fun sendItem(item: EncryptedClipboardDto) {
-        httpClient.webSocket(method = HttpMethod.Get, host = "localhost", port = 8080, path = "/sync") {
-            val jsonStr = json.encodeToString(EncryptedClipboardDto.serializer(), item)
-            send(Frame.Text(jsonStr))
+        try {
+            httpClient.webSocket(
+                method = HttpMethod.Get,
+                host = BuildConfig.SYNC_HOST,
+                port = BuildConfig.SYNC_PORT,
+                path = "/sync",
+            ) {
+                val jsonStr = json.encodeToString(EncryptedClipboardDto.serializer(), item)
+                send(Frame.Text(jsonStr))
+            }
+        } catch (e: Exception) {
+            Log.w(tag, "Failed to send item via WebSocket", e)
         }
     }
 
@@ -51,8 +66,8 @@ internal class KtorNetworkSyncApi(
                 try {
                     httpClient.webSocket(
                         method = HttpMethod.Get,
-                        host = "localhost",
-                        port = 8080,
+                        host = BuildConfig.SYNC_HOST,
+                        port = BuildConfig.SYNC_PORT,
                         path = "/sync",
                     ) {
                         reconnectDelay = 1000L
