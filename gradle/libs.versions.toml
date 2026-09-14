@@ -16,7 +16,7 @@ navigation3 = "1.1.2"
 # Serialization (нужна для @Serializable Route-ключей навигации)
 kotlinxSerializationJson = "1.11.0"
 # Ktor — последняя стабильная на Aug 2026
-ktor = "3.5.2"
+ktor = "3.6.0"
 # Room KMP — последняя стабильная (>= 2.6.0 требование тз.txt)
 room = "2.8.4"
 # Google KSP — используется ТОЛЬКО для room-compiler (Koin 4.x → compiler plugin, не KSP)
@@ -59,9 +59,10 @@ androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigat
 androidx-navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "navigation3" }
 # Serialization
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-# Ktor (Android engine — OkHttp)
+# Ktor (KMP-ready)
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor" }
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }

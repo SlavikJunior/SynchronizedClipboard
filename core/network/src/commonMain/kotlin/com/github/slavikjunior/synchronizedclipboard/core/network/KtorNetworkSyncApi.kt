@@ -20,8 +20,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
-import android.util.Log
-import com.github.slavikjunior.synchronizedclipboard.core.network.BuildConfig
 import kotlinx.coroutines.CoroutineExceptionHandler
 
 @Single
@@ -33,7 +31,7 @@ internal class KtorNetworkSyncApi(
 
     private val scope = CoroutineScope(
         defaultDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, exception ->
-            Log.w(tag, "Unhandled exception in KtorNetworkSyncApi scope", exception)
+            Logger.w(tag, "Unhandled exception in KtorNetworkSyncApi scope", exception)
         }
     )
     private val tag = "KtorNetworkSyncApi"
@@ -47,15 +45,15 @@ internal class KtorNetworkSyncApi(
         try {
             httpClient.webSocket(
                 method = HttpMethod.Get,
-                host = BuildConfig.SYNC_HOST,
-                port = BuildConfig.SYNC_PORT,
+                host = PlatformConfig.syncHost,
+                port = PlatformConfig.syncPort,
                 path = "/sync",
             ) {
                 val jsonStr = json.encodeToString(EncryptedClipboardDto.serializer(), item)
                 send(Frame.Text(jsonStr))
             }
         } catch (e: Exception) {
-            Log.w(tag, "Failed to send item via WebSocket", e)
+            Logger.w(tag, "Failed to send item via WebSocket", e)
         }
     }
 
@@ -66,8 +64,8 @@ internal class KtorNetworkSyncApi(
                 try {
                     httpClient.webSocket(
                         method = HttpMethod.Get,
-                        host = BuildConfig.SYNC_HOST,
-                        port = BuildConfig.SYNC_PORT,
+                        host = PlatformConfig.syncHost,
+                        port = PlatformConfig.syncPort,
                         path = "/sync",
                     ) {
                         reconnectDelay = 1000L
@@ -82,7 +80,7 @@ internal class KtorNetworkSyncApi(
                         }
                     }
                 } catch (e: Exception) {
-                    Log.w(tag, "WebSocket error, will retry in $reconnectDelay ms", e)
+                    Logger.w(tag, "WebSocket error, will retry in $reconnectDelay ms", e)
                 } finally {
                     delay(reconnectDelay)
                     reconnectDelay = minOf(reconnectDelay * 2, 30_000L)
