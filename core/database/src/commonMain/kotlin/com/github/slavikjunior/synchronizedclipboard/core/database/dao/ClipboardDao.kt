@@ -6,6 +6,12 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.github.slavikjunior.synchronizedclipboard.core.database.entity.ClipboardItemEntity
 
+/**
+ * DAO буфера обмена.
+ *
+ * Только `suspend`-функции и без `Flow`: источником истины для UI выступает
+ * `ReactiveCache` из `:core:cache`, Room — «глухое» хранилище (write-through).
+ */
 @Dao
 interface ClipboardDao {
 

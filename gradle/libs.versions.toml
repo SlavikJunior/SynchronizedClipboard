@@ -18,9 +18,14 @@ kotlinxSerializationJson = "1.11.0"
 # Ktor — последняя стабильная на Aug 2026
 ktor = "3.6.0"
 # Room KMP — последняя стабильная (>= 2.6.0 требование тз.txt)
-room = "2.8.4"
+room = "2.8.5"
+# AndroidX SQLite — KMP-драйвер БД (BundledSQLiteDriver) для Android + iOS.
+# 2.7.1 обязателен: Room 2.8.x использует новый API androidx.sqlite.driver.SqlDriver,
+# тогда как в 2.6.x был androidx.sqlite.SQLiteDriver.
+# Побочный эффект: с 2.7.0 публикация iosX64 прекращена — поэтому iosX64 убран из проекта.
+sqlite = "2.7.1"
 # Google KSP — используется ТОЛЬКО для room-compiler (Koin 4.x → compiler plugin, не KSP)
-ksp = "2.3.10"
+ksp = "2.3.12"
 # Koin 4.x — compiler plugin (KSP deprecated, теперь Kotlin Compiler Plugin)
 koin = "4.2.2"
 # Koin Compiler Plugin Gradle — заменяет ksp-обработку Koin Annotations (4.x)
@@ -72,6 +77,9 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 # Компилятор Room для генерации DAO (KSP-процессор, НЕ Koin)
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+# SQLite-драйвер для Room в KMP: содержит нативную библиотеку SQLite для Android и iOS
+androidx-sqlite = { group = "androidx.sqlite", name = "sqlite", version.ref = "sqlite" }
+androidx-sqlite-bundled = { group = "androidx.sqlite", name = "sqlite-bundled", version.ref = "sqlite" }
 # Koin 4.x — compiler plugin (auto-injects koin-core + koin-core-annotations)
 koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin" }
 koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
@@ -103,6 +111,8 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 # Google KSP — используется ТОЛЬКО для room-compiler (Koin 4.x → compiler plugin, не KSP)
 google-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+# Room Gradle Plugin — регистрирует KSP-конфигурации Room и schema location для KMP
+androidx-room = { id = "androidx.room", version.ref = "room" }
 # Koin Compiler Plugin — заменяет ksp-обработку Koin Annotations (4.x)
 koin-compiler = { id = "io.insert-koin.koin-compiler", version.ref = "koinCompilerPlugin" }
 syncclip-android-application = { id = "com.github.slavikjunior.synchronizedclipboard.android.application" }
