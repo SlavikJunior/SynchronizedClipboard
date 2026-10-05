@@ -3,7 +3,12 @@ package com.github.slavikjunior.synchronizedclipboard.core.crypto
 /**
  * Менеджер шифрования для безопасного хранения данных буфера обмена.
  *
- * Использует AES-256-GCM с ключом из AndroidKeyStore.
+ * AES-256-GCM. Источник ключа платформенный:
+ *  - Android — AndroidKeyStore (`javax.crypto` + JCA);
+ *  - iOS — CryptoKit через `dev.whyoleg.cryptography` (переходное состояние,
+ *    ключ в памяти процесса).
+ *
+ * Формат выходной строки одинаков на всех платформах — см. [CipherTextCodec].
  */
 interface CryptoManager {
 

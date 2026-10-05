@@ -32,6 +32,8 @@ koin = "4.2.2"
 koinCompilerPlugin = "1.1.0"
 # Coroutines
 kotlinxCoroutines = "1.11.0"
+# cryptography-kotlin (whyoleg) — KMP-обёртка над JCA (Android) и CryptoKit (iOS)
+cryptography = "0.6.0"
 # DataStore
 datastore = "1.2.1" # KMP-ready version
 # Security
@@ -89,6 +91,10 @@ koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compos
 koin-annotations = { group = "io.insert-koin", name = "koin-annotations", version.ref = "koin" }
 # Coroutines
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+# cryptography-kotlin: AES-256-GCM. Требует Kotlin >= 2.3.0 (в проекте 2.4.10).
+# provider-optimal: JCA на Android, CryptoKit + CommonCrypto fallback на iOS.
+cryptography-core = { group = "dev.whyoleg.cryptography", name = "cryptography-core", version.ref = "cryptography" }
+cryptography-provider-optimal = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-optimal", version.ref = "cryptography" }
 # DataStore (KMP-ready)
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 androidx-datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastore" }

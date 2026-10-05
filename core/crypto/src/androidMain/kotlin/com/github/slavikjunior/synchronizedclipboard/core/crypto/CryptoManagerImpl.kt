@@ -7,9 +7,21 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
-import android.util.Base64
 import org.koin.core.annotation.Single
 
+/**
+ * AES-256-GCM с ключом в AndroidKeyStore (JCA).
+ *
+ * Реализация не переведена на `dev.whyoleg.cryptography`: ключ AndroidKeyStore
+ * неэкспортируем, API whyoleg работает с экспортируемыми ключами (RAW-формат).
+ * Замена означала бы отказ от аппаратного хранения — недопустимо.
+ *
+ * Строковый формат задаёт общий [CipherTextCodec], поэтому шифротекст
+ * совместим с iOS-реализацией.
+ *
+ * Ошибки декодирования формата и крипто-сбои наружу не выбрасываются —
+ * наружу уходит только [DECRYPT_ERROR].
+ */
 @Single
 internal class CryptoManagerImpl : CryptoManager {
 
@@ -19,22 +31,21 @@ internal class CryptoManagerImpl : CryptoManager {
     override fun encrypt(plainText: String): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
-        val iv = cipher.iv
         val cipherText = cipher.doFinal(plainText.toByteArray(Charsets.UTF_8))
-        return "${Base64.encodeToString(iv, Base64.NO_WRAP)}:${Base64.encodeToString(cipherText, Base64.NO_WRAP)}"
+        return CipherTextCodec.encode(iv = cipher.iv, cipherText = cipherText)
     }
 
     override fun decrypt(cipherText: String): String {
+        val decoded = CipherTextCodec.decode(cipherText) ?: return DECRYPT_ERROR
+
         return try {
-            val parts = cipherText.split(":")
-            if (parts.size != 2) return DECRYPT_ERROR
-
-            val iv = Base64.decode(parts[0], Base64.NO_WRAP)
-            val encrypted = Base64.decode(parts[1], Base64.NO_WRAP)
-
             val cipher = Cipher.getInstance(TRANSFORMATION)
-            cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), GCMParameterSpec(GCM_TAG_LENGTH, iv))
-            String(cipher.doFinal(encrypted), Charsets.UTF_8)
+            cipher.init(
+                Cipher.DECRYPT_MODE,
+                getOrCreateKey(),
+                GCMParameterSpec(GCM_TAG_LENGTH, decoded.iv),
+            )
+            String(cipher.doFinal(decoded.cipherText), Charsets.UTF_8)
         } catch (e: Exception) {
             DECRYPT_ERROR
         }
