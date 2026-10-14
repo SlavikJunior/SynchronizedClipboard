@@ -1,14 +1,15 @@
 # SynchronizedClipboard
 
-Нативное Android-приложение для E2E-шифрованной синхронизации буфера обмена между устройствами пользователя. Реалтайм-синхронизация, история, управление сессиями устройств.
+Нативное Android-приложение для E2E-шифрованной синхронизации буфера обмена между устройствами пользователя. Реалтайм-синхронизация, история, управление сессиями устройств. Ведётся миграция на Kotlin Multiplatform (iOS).
 
 ## Стек технологий
 
 - **Kotlin** 2.4.10 | **AGP** 9.3.1 | **Compose BOM** 2026.06.01
+- **Kotlin Multiplatform**: 5 модулей мигрированы (cache, di, network, database, crypto), iOS в разработке
 - **Navigation**: Navigation 3 + Nav3Router
 - **DI**: Koin 4.x (Compiler Plugin)
-- **Сеть**: Ktor Client + kotlinx.serialization
-- **Локальное хранилище**: Room KMP 2.8.4 + DataStore (планируется)
+- **Сеть**: Ktor Client (OkHttp/Darwin) + kotlinx.serialization
+- **Локальное хранилище**: Room KMP 2.8.4 + DataStore
 - **Архитектура**: Clean Architecture + MVI
 
 ## Быстрый старт
@@ -24,7 +25,7 @@
 ./gradlew :app:testDebugUnitTest
 ```
 
-Требования: JDK 21, Android SDK 37, `ANDROID_HOME` настроен.
+Требования: JDK 21, Android SDK 37, macOS + Xcode для iOS-сборки, `ANDROID_HOME` настроен.
 
 ## Архитектура
 
@@ -82,12 +83,13 @@ private fun ClipboardScreenContent(state: ScreenState<ClipboardState>, onEvent: 
 
 Используется **Koin Compiler Plugin** (Kotlin Compiler Plugin, не KSP). Модули регистрируются через `@Module @ComponentScan`:
 
-- `NetworkModule` — `HttpClient` (Ktor + OkHttp)
+- `NetworkModule` — `HttpClient` (Ktor + OkHttp/Darwin)
 - `DatabaseModule` — Room `AppDatabase` + `ClipboardDao`
 - `CryptoModule` — `CryptoManager` (AES-256-GCM)
 - `DiModule` — 4 `CoroutineDispatcher` через `@Named` (`io_dispatcher`, `main_dispatcher`, `default_dispatcher`, `main_immediate_dispatcher`)
 - `CacheModule` — `ReactiveCache<String, Any>` + типизированный `ClipboardLRU` в `ClipboardModule`
 - `AuthModule`, `ClipboardModule`, `DevicesModule`, `SettingsModule` — фича-модули
+- `SettingsDataStore` — DataStore preferences для настроек
 
 Запуск Koin в `SyncClipApplication.kt`:
 ```kotlin
@@ -147,7 +149,7 @@ val onNavigateToTab: (Route) -> Unit = { route ->
 | `syncclip.android.application` | `com.android.application` + compileSdk 37, minSdk 24, targetSdk 36, Java 21 |
 | `syncclip.android.library` | `com.android.library` + конфиг модуля |
 | `syncclip.android.compose` | Compose BOM 2026.06.01, material3/ui/ui-graphics/ui-tooling-preview, debug tooling |
-| `syncclip.android.feature` | Library + core-ktx, lifecycle-runtime-ktx, activity-compose |
+| `syncclip.android.feature` | Не используется (мёртвый) |
 | `syncclip.koin` | Koin Compiler Plugin 1.1.0 |
 
 ## Модульная карта
@@ -156,17 +158,37 @@ val onNavigateToTab: (Route) -> Unit = { route ->
 :app                              # Приложение: Koin startup, RootNavHost
 :core:navigation                  # Route : NavKey, tabTitleRes
 :core:designsystem                # Тема, Scaffold, BottomBar, TopAppBar, FAB, AlertDialog, Loading/Error/Empty
-:core:network                     # Ktor HttpClient, NetworkModule
+:core:network                     # ✅ KMP: Ktor HttpClient, OkHttp/Darwin, PlatformConfig
 :core:database                    # Room AppDatabase, DatabaseModule, ClipboardItemEntity, ClipboardDao
-:core:crypto                      # AES-256-GCM/AndroidKeyStore, CryptoManager, CryptoModule
-:core:di                          # CoroutineDispatcher qualifiers (io/main/default/main_immediate)
-:core:cache                       # ReactiveCache<K,V> + LruReactiveCache, CacheModule
+:core:crypto                      # ✅ KMP: AES-256-GCM, Android AndroidKeyStore/JCA, iOS CryptoKit/whyoleg
+:core:di                          # ✅ KMP: CoroutineDispatcher qualifiers (expect/actual ioDispatcher)
+:core:cache                       # ✅ KMP: ReactiveCache<K,V> + LruReactiveCache (Mutex thread-safety)
 :feature:auth:{api,impl}          # Авторизация
 :feature:clipboard:{api,impl}     # Буфер обмена + Bottom Navigation + Share Target + Quick Tile
 :feature:devices:{api,impl}       # Устройства + Bottom Navigation
-:feature:settings:{api,impl}      # Настройки (тема, история, выход)
+:feature:settings:{api,impl}      # Настройки (тема, история, выход) + DataStore
 build-logic/convention            # 5 convention-плагинов + AndroidModuleConfig
 ```
+
+✅ — Kotlin Multiplatform модули (Android + iOS)
+
+## Kotlin Multiplatform (KMP)
+
+Пять модулей мигрированы на KMP:
+
+- **`:core:cache`** — `ReactiveCache`, `LruReactiveCache` с `Mutex` для потокобезопасности
+- ****:core:di** — `CoroutineDispatcher` providers с `expect/actual` для `ioDispatcher()` (Android: IO, iOS: Default)
+- **`:core:network`** — Ktor Client с platform-specific engines:
+  - Android: OkHttp engine
+  - iOS: Darwin engine (CFNetwork)
+  - `Logger` expect/actual: Android → `android.util.Log`, iOS → `NSLog`
+  - `PlatformConfig` expect/actual: Android → `10.0.2.2:8080` (emulator), iOS → `localhost:8080` (simulator)
+- **`:core:database`** — Room KMP: общий `AppDatabase`, platform-specific `databaseBuilder()` (Android: `SupportSQLiteOpenHelper`; iOS: `BundledSQLiteDriver`). Диспатчер запросов приходит параметром из Koin (`@Named("io_dispatcher")` из `:core:di`)
+- **`:core:crypto`** — AES-256-GCM: Android — AndroidKeyStore/JCA (ключ неэкспортируем, therefore JCA); iOS — CryptoKit через `dev.whyoleg.cryptography` с `runBlocking`-мостом suspend-API к sync-контракту. Общий `CipherTextCodec` фиксирует формат `Base64(IV):Base64(cipherText)` — шифротексты кроссплатформенны
+
+**Source path:**
+- Android-only → `src/main/java/...`
+- KMP → `src/{commonMain,androidMain,iosMain}/kotlin/...`
 
 ## Функционал
 
@@ -194,8 +216,10 @@ build-logic/convention            # 5 convention-плагинов + AndroidModul
 - Уведомление об успешной отвязке (Toast «Устройство «X» отвязано»).
 - Обработка ошибок загрузки.
 
-### Планы развития
-- **DataStore** для persistence настроек.
+### Настройки
+- Выбор темы (System/Light/Dark) — персистится в DataStore
+- Срок хранения истории — персистится в DataStore
+- Выход из аккаунта
 
 ## Системные интеграции
 
@@ -211,10 +235,11 @@ build-logic/convention            # 5 convention-плагинов + AndroidModul
 
 ## E2E шифрование
 
-- Модуль `:core:crypto` (`buildFeatures { compose = false }`).
-- `CryptoManager` — интерфейс `encrypt`/`decrypt`.
-- `CryptoManagerImpl` — `@Single`, AES-256-GCM/NoPadding, ключ в AndroidKeyStore (alias `syncclip_clipboard_key`).
-- Формат: `Base64(IV):Base64(cipherText)`. При ошибке расшифровки — `"🔒 [Ошибка расшифровки]"`.
+- Модуль `:core:crypto` (KMP: commonMain/androidMain/iosMain).
+- `CryptoManager` — интерфейс `encrypt`/`decrypt`, единый для платформ.
+- Реализации: **Android** — JCA + AndroidKeyStore (alias `syncclip_clipboard_key`), **iOS** — CryptoKit через `dev.whyoleg.cryptography` (ключ в памяти процесса, переходное состояние до деривации из парольной фразы).
+- Формат: `Base64(IV):Base64(cipherText)` — контракт в общем `CipherTextCodec`, покрытом commonTest. Записи, созданные до KMP-миграции, читаются без изменений.
+- При ошибке расшифровки — `"🔒 [Ошибка расшифровки]"`.
 - В `:feature:clipboard:impl` шифрование/расшифровка происходит в `ClipboardRepositoryImpl` (через `CryptoManager`). UseCase'ы работают с доменными моделями, репозиторий отвечает за E2E-шифрование.
 
 ## UI и Дизайн-система
@@ -251,31 +276,39 @@ build-logic/convention            # 5 convention-плагинов + AndroidModul
 - `AppDatabase` в `:core:database` (`entities = [DummyEntity::class, ClipboardItemEntity::class]`, version 2).
 - `ClipboardItemEntity` — `@Entity(tableName = "clipboard_items")` с `id`, `encryptedText`, `timestamp`, `sourceDevice`, `isPinned`.
 - `ClipboardDao` — только `suspend` методы без Flow: `getAll()`, `insert()`, `deleteById()`.
-- `fallbackToDestructiveMigration()` для MVP.
+- Явная миграция `MIGRATION_1_2` (`DROP TABLE IF EXISTS dummy_table`).
 - DI через `DatabaseModule`.
 
-### Ktor Client
+### DataStore
 
-- OkHttp engine.
+- `SettingsDataStore` в `:feature:settings:impl` использует `preferencesDataStore(name = "settings")`.
+- Хранит: тему (`AppTheme`), количество дней истории, email пользователя.
+- `DataStoreSettingsRepository` реализует `SettingsRepository`.
+
+### Ktor Client (KMP)
+
+- Platform-specific engine: OkHttp (Android), Darwin (iOS).
 - ContentNegotiation: `kotlinx.serialization.Json` (ignoreUnknownKeys, isLenient).
-- Logging на уровне BODY для debug.
+- Logging на уровне HEADERS.
 
-### WebSocket (реализован)
+### WebSocket
 
 - `KtorNetworkSyncApi` (`@Single`) в `:core:network` — точка интеграции WebSocket в клиент.
-- Подключение к `ws://localhost:8080/sync` (MVP адрес).
+- Platform-specific адрес:
+  - Android (emulator): `ws://10.0.2.2:8080/sync`
+  - Android (device): требуется реальный IP
+  - iOS (simulator): `ws://localhost:8080/sync`
+  - iOS (device): требуется реальный IP
 - Входящий поток: `observeIncomingItems(): Flow<EncryptedClipboardDto>` — постоянный слушатель с реконнектом и exponential backoff (1s → 30s).
 - Исходящий поток: `sendItem(item: EncryptedClipboardDto)` — открывает короткий сеанс для отправки одного элемента.
 - Внутренний `MutableSharedFlow<EncryptedClipboardDto>` (extraBufferCapacity = 64) буферизирует входящие сообщения между WebSocket-сессией и consumer'ом.
 - `NetworkModule` регистрирует `HttpClient` с плагином `WebSockets` и экспонирует `networkModule()` для Koin.
 
-### Fake-репозитории
+### Репозитории
 
-Для MVP данные хранятся в памяти или локально:
-
-- **Clipboard** (`ClipboardRepositoryImpl` в `domain/repository/`): Write-Through Cache через `ReactiveCache` (`:core:cache`). Источник истины для UI — in-memory LRU-кеш с `MutableStateFlow`. Room используется как глухое хранилище без Flow. Кеш прогревается из БД при первом `observeClipboard()`. Мутации (`add/delete/pin`) сразу попадают в кеш, запись в БД — fire-and-forget корутина. Входящие элементы из WebSocket расшифровываются через `CryptoManager` и записываются в кеш + Room. Исходящие элементы отправляются в сеть после записи в кеш/БД.
+- **Clipboard** (`ClipboardRepositoryImpl`): Write-Through Cache через `ReactiveCache` (`:core:cache`). Источник истины для UI — in-memory LRU-кеш с `MutableStateFlow`. Room используется как глухое хранилище без Flow. Кеш прогревается из БД при первом `observeClipboard()`. Мутации (`add/delete/pin`) сразу попадают в кеш, запись в БД — fire-and-forget корутина. Входящие элементы из WebSocket расшифровываются через `CryptoManager` и записываются в кеш + Room. Исходящие элементы отправляются в сеть после записи в кеш/БД.
 - **Devices**: 3 устройства (Pixel 8 Pro текущее, MacBook Pro, iPhone 15).
-- **Settings** (`FakeSettingsRepository` в `data/local/repositories/`): in-memory хранение настроек темы и дней истории.
+- **Settings** (`DataStoreSettingsRepository`): DataStore preferences для темы и дней истории.
 
 ### Модели данных
 
@@ -303,192 +336,21 @@ data class DeviceItem(
 - `ClipboardItemData` — маппер `toDomain()` / `toData()`.
 - `DeviceItemData` — маппер `toDomain()` / `toData()`.
 
-## Интеграция с бекендом
-
-### Общая стратегия
-
-- **REST API** — синхронные операции: auth, CRUD clipboard, управление устройствами.
-- **WebSocket** — реалтайм-синхронизация clipboard и presence устройств (реализован в `:core:network`).
-- **Ktor Client** — единственная точка входа в сеть. Все запросы идут через `HttpClient` из `NetworkModule`.
-- **Аутентификация** — JWT `accessToken` / `refreshToken`, заголовок `Authorization: Bearer <token>`.
-- **Обработка ошибок** — на уровне Repository обёртываются в `Result<T>` или `Flow<ScreenState>`, ViewModel переводит в `ScreenState.Error`.
-- **E2E шифрование** — клиент шифрует содержимое буфера перед отправкой; сервер хранит только ciphertext.
-
----
-
-### Auth — REST эндпоинты
-
-| Метод | Эндпоинт | Параметры | Ответ |
-|---|---|---|---|
-| `POST` | `/api/v1/auth/register` | Body: `{ login: String, password: String }` | `AuthResponse` |
-| `POST` | `/api/v1/auth/login` | Body: `{ login: String, password: String }` | `AuthResponse` |
-| `POST` | `/api/v1/auth/google` | Body: `{ googleIdToken: String }` | `AuthResponse` |
-| `POST` | `/api/v1/auth/logout` | — | `204 No Content` |
-| `POST` | `/api/v1/auth/refresh` | Body: `{ refreshToken: String }` | `AuthResponse` |
-
-**AuthResponse:**
-```json
-{
-  "accessToken": "string",
-  "refreshToken": "string",
-  "expiresIn": 3600,
-  "user": {
-    "id": "uuid",
-    "email": "string",
-    "displayName": "string?",
-    "createdAt": "ISO8601"
-  }
-}
-```
-
----
-
-### Clipboard — REST эндпоинты
-
-| Метод | Эндпоинт | Параметры | Ответ |
-|---|---|---|---|
-| `GET` | `/api/v1/clipboard/items` | Query: `page: Int`, `pageSize: Int` | `ClipboardListResponse` |
-| `POST` | `/api/v1/clipboard/items` | Body: `{ text: String, sourceDeviceId: String, isPinned: Boolean }` | `ClipboardItemDto` |
-| `DELETE` | `/api/v1/clipboard/items/{id}` | Path: `id` | `204 No Content` |
-| `PATCH` | `/api/v1/clipboard/items/{id}/pin` | Path: `id`, Body: `{ isPinned: Boolean }` | `ClipboardItemDto` |
-
-**ClipboardListResponse:**
-```json
-{
-  "items": [
-    {
-      "id": "uuid",
-      "text": "encrypted_or_plaintext",
-      "timestamp": "ISO8601",
-      "sourceDeviceId": "uuid",
-      "sourceDeviceName": "string",
-      "isPinned": false,
-      "isDeleted": false
-    }
-  ],
-  "total": 42,
-  "page": 1,
-  "pageSize": 50
-}
-```
-
----
-
-### Devices — REST эндпоинты
-
-| Метод | Эндпоинт | Параметры | Ответ |
-|---|---|---|---|
-| `GET` | `/api/v1/devices` | — | `List<DeviceItemDto>` |
-| `DELETE` | `/api/v1/devices/{id}` | Path: `id` | `204 No Content` |
-| `PATCH` | `/api/v1/devices/{id}` | Path: `id`, Body: `{ name?: String }` | `DeviceItemDto` |
-
-**DeviceItemDto:**
-```json
-{
-  "id": "uuid",
-  "name": "string",
-  "os": "string",
-  "isCurrentDevice": true,
-  "isOnline": true,
-  "lastSyncTimestamp": "ISO8601"
-}
-```
-
----
-
-### Realtime — WebSocket
-
-**URL:** `wss://api.example.com/api/v1/realtime?accessToken=<JWT>`
-
-**Подключение:**
-- После успешной аутентификации.
-- Heartbeat: сервер шлёт ping каждые 30 сек, клиент отвечает pong.
-- Reconnect: exponential backoff (1s → 2s → 4s → … → 30s max).
-
-**События от сервера:**
-
-| Event Type | Payload | Назначение |
-|---|---|---|
-| `CLIPBOARD_ITEM_ADDED` | `ClipboardItemDto` | Новый элемент в буфере |
-| `CLIPBOARD_ITEM_UPDATED` | `ClipboardItemDto` | Изменение (pin/unpin) |
-| `CLIPBOARD_ITEM_DELETED` | `{ id: String }` | Удаление элемента |
-| `DEVICE_STATUS_CHANGED` | `DeviceItemDto` | Онлайн/офлайн, lastSyncTimestamp |
-
-**Пример сообщения (inbound):**
-```json
-{
-  "type": "CLIPBOARD_ITEM_ADDED",
-  "payload": {
-    "id": "uuid",
-    "text": "string",
-    "timestamp": "ISO8601",
-    "sourceDeviceId": "uuid",
-    "sourceDeviceName": "string",
-    "isPinned": false,
-    "isDeleted": false
-  }
-}
-```
-
-**Пример сообщения (outbound, heartbeat):**
-```json
-{
-  "type": "DEVICE_HEARTBEAT",
-  "payload": {
-    "deviceId": "uuid",
-    "isOnline": true,
-    "lastSyncTimestamp": "ISO8601"
-  }
-}
-```
-
----
-
-### Общие DTO (справка для бекенда)
-
-```kotlin
-// Auth
-data class LoginRequest(val login: String, val password: String)
-data class GoogleLoginRequest(val googleIdToken: String)
-data class AuthResponse(val accessToken: String, val refreshToken: String, val expiresIn: Long, val user: UserDto)
-data class UserDto(val id: String, val email: String, val displayName: String?, val createdAt: String)
-
-// Clipboard
-data class ClipboardItemDto(val id: String, val text: String, val timestamp: String, val sourceDeviceId: String, val sourceDeviceName: String, val isPinned: Boolean, val isDeleted: Boolean)
-data class AddClipboardItemRequest(val text: String, val sourceDeviceId: String, val isPinned: Boolean)
-data class ClipboardListResponse(val items: List<ClipboardItemDto>, val total: Int, val page: Int, val pageSize: Int)
-
-// Devices
-data class DeviceItemDto(val id: String, val name: String, val os: String, val isCurrentDevice: Boolean, val isOnline: Boolean, val lastSyncTimestamp: String)
-
-// Realtime
-data class RealtimeMessage(val type: String, val payload: JsonElement)
-```
-
----
-
-## Схема данных
-
-```
-User (1) ──< (N) Device
-   │
-   └──< (N) ClipboardItem
-```
-
-- **User**: `id (PK)`, `email`, `displayName`, `passwordHash`, `createdAt`.
-- **Device**: `id (PK)`, `userId (FK)`, `name`, `os`, `deviceType`, `isCurrent`, `isOnline`, `lastSyncAt`, `createdAt`, `deletedAt`.
-- **ClipboardItem**: `id (PK)`, `userId (FK)`, `deviceId (FK)`, `encryptedText`, `isPinned`, `isDeleted`, `createdAt`, `updatedAt`.
-
 ## Roadmap
 
-- [x] `:core:navigation`, `:core:designsystem`, `:core:network`, `:core:database`
-- [x] `:core:crypto` — AES-256-GCM/AndroidKeyStore
+- [x] `:core:navigation` — `Route : NavKey` + `tabTitleRes`
+- [x] `:core:designsystem` — `SyncClipTheme`, `ScreenState`, state views, `SyncClipScaffold`, `SyncClipBottomBar`
+- [x] `:core:network` + `:core:database` — Ktor + Room KMP (Koin DI)
+- [x] `:core:crypto` — AES-256-GCM/AndroidKeyStore, E2E шифрование
 - [x] `:core:di` — CoroutineDispatcher qualifiers
-- [x] `:core:cache` — ReactiveCache + Write-Through Cache
-- [x] `:feature:auth`, `:feature:clipboard`, `:feature:devices`, `:feature:settings`
-- [x] Share Target (`ACTION_SEND`) + Quick Settings Tile
-- [x] WebSocket E2E-синхронизация (`KtorNetworkSyncApi` + `EncryptedClipboardDto`)
-- [ ] DataStore для persistence настроек
+- [x] `:core:cache` — ReactiveCache + Write-Through Cache для clipboard
+- [x] `:feature:auth` — авторизация
+- [x] `:feature:clipboard` — буфер обмена + Bottom Navigation + Share Target + Quick Tile + Write-Through Cache
+- [x] `:feature:devices` — управление устройствами + Bottom Navigation
+- [x] `:feature:settings` — настройки (тема, история, выход) + DataStore
+- [x] WebSocket E2E-синхронизация
+- [x] KMP: `:core:cache`, `:core:di`, `:core:network`, `:core:database`, `:core:crypto`
+- [ ] iOS UI на Compose Multiplatform
 
 ## Лицензия
 
