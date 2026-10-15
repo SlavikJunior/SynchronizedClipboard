@@ -17,6 +17,15 @@ kotlin {
         }
     }
     
+    // JVM-таргет для desktop-клиента (CLI-демон). Dispatchers.IO на JVM
+    // доступен из common coroutines — отдельная реализация не нужна,
+    // но actual-декларация обязана существовать.
+    jvm {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
+    }
+
     // iOS targets
     listOf(
         iosArm64(),
