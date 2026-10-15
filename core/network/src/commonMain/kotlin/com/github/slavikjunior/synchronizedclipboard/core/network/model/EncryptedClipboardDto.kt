@@ -3,10 +3,16 @@ package com.github.slavikjunior.synchronizedclipboard.core.network.model
 import kotlinx.serialization.Serializable
 
 /**
- * DTO для передачи зашифрованного элемента буфера обмена по WebSocket.
+ * Клиентская модель входящего элемента буфера обмена.
  *
- * **Сервер получает ТОЛЬКО зашифрованные данные (E2E).** Расшифровка происходит
- * на клиенте через [com.github.slavikjunior.synchronizedclipboard.core.crypto.CryptoManager].
+ * Транспортная точка зрения: payload уже расшифрован выше слоя (в
+ * [com.github.slavikjunior.synchronizedclipboard.core.crypto.CryptoManager]),
+ * поэтому поле называется `encryptedText` — это ровно та строка
+ * `Base64(IV):Base64(cipherText)`, которую вернул бэкенд.
+ *
+ * @property sourceDevice UUID устройства-отправителя (`deviceId` из ответа);
+ *                     UI использует его как человекочитаемую метку.
+ * @property isPinned сервер не хранит закрепление — всегда false в MVP.
  */
 @Serializable
 data class EncryptedClipboardDto(

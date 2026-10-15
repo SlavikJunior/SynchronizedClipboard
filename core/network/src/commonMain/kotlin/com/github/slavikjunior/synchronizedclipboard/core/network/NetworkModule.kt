@@ -25,6 +25,9 @@ class NetworkModule {
     /**
      * HTTP-клиент Ktor с platform-specific engine, ContentNegotiation (JSON), Logging и WebSockets.
      * @Single = singleton в Koin graph.
+     *
+     * Логирование на уровне INFO (без HEADERS): в заголовках ездит
+     * `Authorization: Bearer <idToken>` — он не должен попадать в логи.
      */
     @Single
     fun httpClient(
@@ -34,7 +37,7 @@ class NetworkModule {
             json(json)
         }
         install(Logging) {
-            level = LogLevel.HEADERS
+            level = LogLevel.INFO
         }
         install(WebSockets) {
         }
@@ -46,6 +49,11 @@ class NetworkModule {
      * Вместо `@ComponentScan` (сгенерированный модуль не используется),
      * чтобы избежать проблем с доступом к сгенерированному `.module` в текущей
      * версии Koin Compiler Plugin.
+     *
+     * Зависимости [SyncConfigProvider], [AuthTokenProvider] и
+     * [DeviceIdentityProvider] — интерфейсы из общего кода; их реализации
+     * регистрируются клиентским слоем (Android: feature:auth/feature:settings,
+     * desktop CLI: конфиг-файл).
      */
     fun networkModule() = module {
         single { httpClient(get()) }
@@ -53,6 +61,9 @@ class NetworkModule {
             KtorNetworkSyncApi(
                 httpClient = get(),
                 json = get(),
+                syncConfigProvider = get(),
+                tokenProvider = get(),
+                deviceIdentityProvider = get(),
                 defaultDispatcher = get(named("default_dispatcher")),
             )
         }

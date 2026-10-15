@@ -1,14 +1,14 @@
 package com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.domain.repository
 
+import android.util.Log
 import com.github.slavikjunior.synchronizedclipboard.core.crypto.CryptoManager
 import com.github.slavikjunior.synchronizedclipboard.core.database.dao.ClipboardDao
 import com.github.slavikjunior.synchronizedclipboard.core.database.entity.ClipboardItemEntity
 import com.github.slavikjunior.synchronizedclipboard.core.cache.ReactiveCache
 import com.github.slavikjunior.synchronizedclipboard.core.network.api.NetworkSyncApi
-import com.github.slavikjunior.synchronizedclipboard.core.network.model.EncryptedClipboardDto
+import com.github.slavikjunior.synchronizedclipboard.core.network.model.ClipboardType
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.ClipboardItem
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.api.ClipboardRepository
-import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.data.mapper.toDto
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.data.mapper.toDomain
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.data.mapper.toEntity
 import kotlinx.coroutines.CoroutineDispatcher
@@ -68,7 +68,12 @@ internal class ClipboardRepositoryImpl(
             val encrypted = item.copy(text = cryptoManager.encrypt(item.text))
             val entity = encrypted.toEntity()
             clipboardDao.insert(entity)
-            networkSyncApi.sendItem(entity.toDto())
+            networkSyncApi.sendItem(entity.encryptedText, ClipboardType.TEXT)
+                .onFailure { error ->
+                    // Локальная запись уже состоялась; сетевой сбой не откатываем,
+                    // но и не глотаем молча.
+                    Log.w(TAG, "Не удалось отправить элемент в облако: ${item.id}", error)
+                }
         }
     }
 
@@ -111,5 +116,9 @@ internal class ClipboardRepositoryImpl(
 
     fun clear() {
         scope.cancel()
+    }
+
+    private companion object {
+        private const val TAG = "ClipboardRepository"
     }
 }
