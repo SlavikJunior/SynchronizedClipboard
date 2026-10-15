@@ -1,5 +1,7 @@
 package com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.presentation.clipboard.ui
 
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -78,7 +81,7 @@ internal fun ClipboardScreen(
 ) {
     val state = viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -102,8 +105,28 @@ internal fun ClipboardScreen(
         state = state.value,
         snackbarHostState = snackbarHostState,
         onEvent = viewModel::handleEvent,
+        onFabClicked = {
+            viewModel.handleEvent(ClipboardEvent.OnFabClicked(readSystemClipboardText(context)))
+        },
         onNavigateToTab = onNavigateToTab,
     )
+}
+
+/**
+ * Читает текст из системного буфера обмена.
+ *
+ * Побочный эффект платформы, поэтому выполняется в UI-слое (stateful-обёртке),
+ * а не во ViewModel. На Android 10+ чтение доступно только приложению
+ * с фокусом — клик по FAB гарантирует, что он есть.
+ *
+ * @return текст или `null`, если буфер пуст/не содержит текста.
+ */
+private fun readSystemClipboardText(context: Context): String? {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+        ?: return null
+    val clip = clipboard.primaryClip ?: return null
+    if (clip.itemCount == 0) return null
+    return clip.getItemAt(0).coerceToText(context)?.toString()?.takeIf { it.isNotBlank() }
 }
 
 @Composable
@@ -111,6 +134,7 @@ private fun ClipboardScreenContent(
     state: ScreenState<ClipboardState>,
     snackbarHostState: SnackbarHostState,
     onEvent: (ClipboardEvent) -> Unit,
+    onFabClicked: () -> Unit,
     onNavigateToTab: (com.github.slavikjunior.synchronizedclipboard.core.navigation.Route) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -176,7 +200,7 @@ private fun ClipboardScreenContent(
         },
         floatingActionButton = {
             SyncClipFab(
-                onClick = { onEvent(ClipboardEvent.OnFabClicked) },
+                onClick = onFabClicked,
                 contentDescription = stringResource(id = R.string.clipboard_fab_description),
             ) {
                 androidx.compose.material3.Icon(

@@ -22,7 +22,7 @@
     <string name="clipboard_copied">Скопировано</string>
     <string name="clipboard_deleted">Удалено</string>
     <string name="clipboard_pinned_changed">Закрепление изменено</string>
-    <string name="clipboard_fake_item">Новый элемент (Fake)</string>
+    <string name="clipboard_device_empty">В буфере обмена нет текста</string>
 
     <!-- Devices -->
     <string name="devices_title">Мои устройства</string>

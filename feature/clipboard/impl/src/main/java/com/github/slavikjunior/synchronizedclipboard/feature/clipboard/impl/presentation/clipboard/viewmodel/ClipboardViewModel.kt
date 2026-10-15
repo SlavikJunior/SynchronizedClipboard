@@ -47,7 +47,7 @@ internal class ClipboardViewModel(
 
     fun handleEvent(event: ClipboardEvent) {
         when (event) {
-            is ClipboardEvent.OnFabClicked -> onFabClicked()
+            is ClipboardEvent.OnFabClicked -> onFabClicked(event.text)
             is ClipboardEvent.OnItemCopied -> onItemCopied(event.itemId)
             is ClipboardEvent.OnItemDeleted -> onItemDeleted(event.itemId)
             is ClipboardEvent.OnItemPinned -> onItemPinned(event.itemId)
@@ -55,23 +55,40 @@ internal class ClipboardViewModel(
         }
     }
 
-    private fun onFabClicked() {
+    /**
+     * Добавляет в облако текущее содержимое системного буфера обмена.
+     *
+     * [text] уже прочитан UI-слоем — ViewModel остаётся свободной от `Context`.
+     * Пустой буфер — не ошибка, а информационный snackbar.
+     */
+    private fun onFabClicked(text: String?) {
         viewModelScope.launch {
-            val fakeItem = ClipboardItem(
+            if (text.isNullOrBlank()) {
+                _effect.send(
+                    ClipboardEffect.ShowSnackbar(
+                        messageRes = R.string.clipboard_device_empty,
+                        actionLabelRes = null,
+                        onAction = null,
+                    )
+                )
+                return@launch
+            }
+
+            val item = ClipboardItem(
                 id = System.currentTimeMillis().toString(),
-                text = "Новый элемент (Fake)",
+                text = text,
                 timestamp = System.currentTimeMillis(),
-                sourceDevice = "Это устройство",
+                sourceDevice = SOURCE_THIS_DEVICE,
                 isPinned = false,
             )
-            addClipboardItemUseCase(fakeItem)
+            addClipboardItemUseCase(item)
             _effect.send(
                 ClipboardEffect.ShowSnackbar(
                     messageRes = R.string.clipboard_added,
                     actionLabelRes = R.string.clipboard_undo,
                     onAction = {
                         viewModelScope.launch {
-                            deleteClipboardItemUseCase(fakeItem.id)
+                            deleteClipboardItemUseCase(item.id)
                         }
                     },
                 )
@@ -132,5 +149,10 @@ internal class ClipboardViewModel(
                 _state.update { ScreenState.Success(ClipboardState(items = items)) }
             } ?: _state.update { ScreenState.Error("Не удалось загрузить данные") }
         }
+    }
+
+    private companion object {
+        /** Источник для элементов, скопированных с этого устройства через FAB. */
+        const val SOURCE_THIS_DEVICE = "This device"
     }
 }
