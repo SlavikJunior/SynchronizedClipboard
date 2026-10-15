@@ -31,6 +31,9 @@ class AuthDataStore private constructor(context: Context) {
             }
         }
 
+    /** Синхронное чтение текущего access-токена (без подписки на Flow). */
+    fun currentAccessToken(): String? = sharedPreferences.getString(KEY_ACCESS_TOKEN, null)
+
     fun getRefreshToken(): String? = sharedPreferences.getString(KEY_REFRESH_TOKEN, null)
 
     suspend fun clear() {

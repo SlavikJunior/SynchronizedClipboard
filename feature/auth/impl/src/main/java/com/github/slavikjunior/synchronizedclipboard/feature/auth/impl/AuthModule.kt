@@ -1,7 +1,10 @@
 package com.github.slavikjunior.synchronizedclipboard.feature.auth.impl
 
+import android.content.Context
+import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.data.local.AuthDataStore
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
 
 /**
  * Koin DI-модуль auth-фичи.
@@ -14,4 +17,13 @@ import org.koin.core.annotation.Module
  */
 @Module
 @ComponentScan("com.github.slavikjunior.synchronizedclipboard.feature.auth.impl")
-class AuthModule
+class AuthModule {
+
+    /**
+     * [AuthDataStore] — единственный хранитель токенов сессии. Конструктор
+     * приватный (синглтон через [AuthDataStore.getInstance]), поэтому бин
+     * создаётся явной фабрикой, а не аннотацией на классе.
+     */
+    @Single
+    fun authDataStore(context: Context): AuthDataStore = AuthDataStore.getInstance(context)
+}

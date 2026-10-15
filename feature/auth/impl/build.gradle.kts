@@ -14,6 +14,11 @@ dependencies {
     implementation(project(":feature:auth:api"))
     implementation(project(":core:navigation"))
     implementation(project(":core:designsystem"))
+    // Провайдеры сетевого слоя (AuthTokenProvider/DeviceIdentityProvider)
+    // реализуются здесь — интерфейсы живут в :core:network.
+    implementation(project(":core:network"))
+    // Диспатчеры (io_dispatcher) для main-safe чтения EncryptedSharedPreferences.
+    implementation(project(":core:di"))
 
     // core-ktx + lifecycle (выделены из AndroidFeaturePlugin для явности)
     implementation(libs.androidx.core.ktx)
@@ -32,4 +37,7 @@ dependencies {
     implementation(libs.androidx.navigation3.runtime)
 
     implementation(libs.androidx.security.crypto)
+
+    // Хранилище deviceId (DataStore Preferences).
+    implementation(libs.androidx.datastore.preferences)
 }
