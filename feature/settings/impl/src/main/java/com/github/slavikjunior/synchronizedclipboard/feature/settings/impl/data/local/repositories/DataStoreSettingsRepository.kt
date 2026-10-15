@@ -17,11 +17,13 @@ internal class DataStoreSettingsRepository(
         settingsDataStore.observeTheme(),
         settingsDataStore.observeKeepHistoryDays(),
         settingsDataStore.observeEmail(),
-    ) { theme, keepHistoryDays, email ->
+        settingsDataStore.observePassphrase(),
+    ) { theme, keepHistoryDays, email, passphrase ->
         UserSettings(
             email = email,
             theme = theme,
             keepHistoryDays = keepHistoryDays,
+            passphrase = passphrase,
         )
     }
 
@@ -34,6 +36,13 @@ internal class DataStoreSettingsRepository(
 
     override suspend fun updateTheme(theme: AppTheme): Result<Unit> = try {
         settingsDataStore.saveTheme(theme)
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    override suspend fun updatePassphrase(passphrase: String): Result<Unit> = try {
+        settingsDataStore.savePassphrase(passphrase)
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(e)

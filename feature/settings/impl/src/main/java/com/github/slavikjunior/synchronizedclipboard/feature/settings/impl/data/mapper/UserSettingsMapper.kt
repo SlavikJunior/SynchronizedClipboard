@@ -11,10 +11,12 @@ fun UserSettings.toData(): UserSettingsData = UserSettingsData(
     email = email,
     theme = theme,
     keepHistoryDays = keepHistoryDays,
+    passphrase = passphrase,
 )
 
 fun UserSettingsData.toDomain(): UserSettings = UserSettings(
     email = email,
     theme = theme,
     keepHistoryDays = keepHistoryDays,
+    passphrase = passphrase,
 )

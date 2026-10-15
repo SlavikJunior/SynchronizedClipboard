@@ -7,6 +7,7 @@ import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.usecase.LogoutUseCase
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.usecase.ObserveSettingsUseCase
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.usecase.UpdateKeepHistoryDaysUseCase
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.usecase.UpdatePassphraseUseCase
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.usecase.UpdateThemeUseCase
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.R
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.effect.SettingsEffect
@@ -33,6 +34,7 @@ internal class SettingsViewModel(
     private val observeSettingsUseCase: ObserveSettingsUseCase,
     private val updateKeepHistoryDaysUseCase: UpdateKeepHistoryDaysUseCase,
     private val updateThemeUseCase: UpdateThemeUseCase,
+    private val updatePassphraseUseCase: UpdatePassphraseUseCase,
     private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
 
@@ -54,6 +56,7 @@ internal class SettingsViewModel(
         when (event) {
             is SettingsEvent.ThemeChanged -> onThemeChanged(event)
             is SettingsEvent.HistoryDaysChanged -> onHistoryDaysChanged(event)
+            is SettingsEvent.PassphraseChanged -> onPassphraseChanged(event)
             SettingsEvent.LogoutClicked -> onLogoutClicked()
         }
     }
@@ -113,6 +116,41 @@ internal class SettingsViewModel(
             updateKeepHistoryDaysUseCase(event.days).fold(
                 onSuccess = {
                     // Снимаем флаг записи. Значение keepHistoryDays в state уже
+                    // консистентно с DataStore (init { observeSettingsUseCase() }
+                    // подтвердит это при следующей эмиссии).
+                    clearSaveInFlight()
+                },
+                onFailure = { cause ->
+                    // Rollback к предыдущему значению.
+                    if (previous != null) {
+                        _state.update { ScreenState.Success(previous) }
+                    }
+                    _effect.send(SettingsEffect.ShowErrorWithMessageText(cause.message.orEmpty()))
+                },
+            )
+        }
+    }
+
+    private fun onPassphraseChanged(event: SettingsEvent.PassphraseChanged) {
+        // Снимок текущего успешного state для возможного отката.
+        val previous: SettingsState? = (state.value as? ScreenState.Success)?.data
+
+        // Optimistic update — UI реагирует мгновенно, плюс флаг "сохранение".
+        if (previous != null) {
+            _state.update {
+                ScreenState.Success(
+                    previous.copy(
+                        passphrase = event.passphrase,
+                        saveInFlight = SaveInFlight.Passphrase,
+                    ),
+                )
+            }
+        }
+
+        viewModelScope.launch {
+            updatePassphraseUseCase(event.passphrase).fold(
+                onSuccess = {
+                    // Снимаем флаг записи. Значение passphrase в state уже
                     // консистентно с DataStore (init { observeSettingsUseCase() }
                     // подтвердит это при следующей эмиссии).
                     clearSaveInFlight()

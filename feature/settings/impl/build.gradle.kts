@@ -9,6 +9,7 @@ android {
 
 dependencies {
     implementation(project(":feature:settings:api"))
+    implementation(project(":core:crypto"))
     implementation(project(":core:navigation"))
     implementation(project(":core:designsystem"))
     implementation(project(":feature:clipboard:api"))

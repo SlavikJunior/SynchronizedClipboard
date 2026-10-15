@@ -50,6 +50,7 @@ import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.prese
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.model.SaveInFlight
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.model.SettingsState
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.ui.components.HistoryDaysSelector
+import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.ui.components.PassphraseField
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.ui.components.ProfileCard
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.ui.components.ThemeSelector
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.impl.presentation.settings.viewmodel.SettingsViewModel
@@ -308,6 +309,21 @@ private fun SettingsSuccessContent(
                 keepHistoryDays = settings.keepHistoryDays,
                 isSaving = settings.saveInFlight == SaveInFlight.HistoryDays,
                 onHistoryDaysChanged = { onEvent(SettingsEvent.HistoryDaysChanged(it)) },
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(id = R.string.settings_passphrase_title),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            PassphraseField(
+                passphrase = settings.passphrase,
+                isSaving = settings.saveInFlight == SaveInFlight.Passphrase,
+                onPassphraseChanged = { onEvent(SettingsEvent.PassphraseChanged(it)) },
             )
         }
     }

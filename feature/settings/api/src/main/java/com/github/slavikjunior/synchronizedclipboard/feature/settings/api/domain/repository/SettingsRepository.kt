@@ -8,5 +8,6 @@ interface SettingsRepository {
     fun observeSettings(): Flow<UserSettings>
     suspend fun updateKeepHistoryDays(days: Int): Result<Unit>
     suspend fun updateTheme(theme: AppTheme): Result<Unit>
+    suspend fun updatePassphrase(passphrase: String): Result<Unit>
     suspend fun logout(): Result<Unit>
 }

@@ -8,5 +8,6 @@ import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain
 internal sealed interface SettingsEvent {
     data class ThemeChanged(val theme: AppTheme) : SettingsEvent
     data class HistoryDaysChanged(val days: Int) : SettingsEvent
+    data class PassphraseChanged(val passphrase: String) : SettingsEvent
     data object LogoutClicked : SettingsEvent
 }

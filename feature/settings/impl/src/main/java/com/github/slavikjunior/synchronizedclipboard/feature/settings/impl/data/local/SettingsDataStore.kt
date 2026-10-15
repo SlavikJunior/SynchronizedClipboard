@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.github.slavikjunior.synchronizedclipboard.feature.settings.api.domain.model.AppTheme
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.Single
 
@@ -20,6 +21,7 @@ class SettingsDataStore(private val context: Context) {
     private val themeKey = intPreferencesKey("theme")
     private val keepHistoryDaysKey = intPreferencesKey("keep_history_days")
     private val emailKey = stringPreferencesKey("email")
+    private val passphraseKey = stringPreferencesKey("passphrase")
 
     suspend fun saveTheme(theme: AppTheme) {
         context.dataStore.edit { preferences ->
@@ -51,4 +53,16 @@ class SettingsDataStore(private val context: Context) {
     fun observeEmail(): Flow<String> = context.dataStore.data.map { preferences ->
         preferences[emailKey] ?: ""
     }
+
+    suspend fun savePassphrase(passphrase: String) {
+        context.dataStore.edit { preferences ->
+            preferences[passphraseKey] = passphrase
+        }
+    }
+
+    fun observePassphrase(): Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[passphraseKey] ?: ""
+    }
+
+    suspend fun readPassphrase(): String = observePassphrase().first()
 }

@@ -18,4 +18,6 @@ data class UserSettingsData(
     val theme: AppTheme,
     @SerialName("keep_history_days")
     val keepHistoryDays: Int,
+    @SerialName("passphrase")
+    val passphrase: String = "",
 )

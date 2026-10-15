@@ -15,4 +15,7 @@
     <string name="settings_logout_cancel">Отмена</string>
     <string name="settings_logout_success">Вы вышли из аккаунта</string>
     <string name="settings_error_generic">Ошибка</string>
+    <string name="settings_passphrase_title">Парольная фраза</string>
+    <string name="settings_passphrase_label">Парольная фраза</string>
+    <string name="settings_passphrase_hint">Одинаковая на всех устройствах — общий ключ шифрования. Пустая = локальное шифрование.</string>
 </resources>

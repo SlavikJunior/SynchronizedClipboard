@@ -12,19 +12,22 @@ internal enum class SaveInFlight {
     None,
     Theme,
     HistoryDays,
+    Passphrase,
 }
 
 /**
  * UI-стейт экрана настроек.
  *
  * Инкапсулирует данные для отображения: профиль, выбранная тема,
- * срок хранения истории. Создаётся из [com.github.slavikjunior.synchronizedclipboard.feature.settings.api.UserSettings]
+ * срок хранения истории, парольная фраза. Создаётся из
+ * [com.github.slavikjunior.synchronizedclipboard.feature.settings.api.UserSettings]
  * в ViewModel.
  */
 internal data class SettingsState(
     val email: String = "",
     val theme: AppTheme = AppTheme.System,
     val keepHistoryDays: Int = 7,
+    val passphrase: String = "",
     val saveInFlight: SaveInFlight = SaveInFlight.None,
 ) {
     companion object {
@@ -33,6 +36,7 @@ internal data class SettingsState(
                 email = settings.email,
                 theme = settings.theme,
                 keepHistoryDays = settings.keepHistoryDays,
+                passphrase = settings.passphrase,
             )
     }
 }
