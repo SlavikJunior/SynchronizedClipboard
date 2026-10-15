@@ -18,6 +18,14 @@ kotlin {
         }
     }
     
+    // JVM-таргет для desktop-клиента (CLI-демон на macOS/Linux, Фаза 5 MVP).
+    // Двигатель — OkHttp, тот же, что на Android.
+    jvm {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
+    }
+
     // iOS targets
     listOf(
         iosArm64(),
@@ -48,6 +56,11 @@ kotlin {
         
         androidMain.dependencies {
             // Ktor OkHttp engine (Android-only)
+            implementation(libs.ktor.client.okhttp)
+        }
+
+        jvmMain.dependencies {
+            // Ktor OkHttp engine для desktop-клиента
             implementation(libs.ktor.client.okhttp)
         }
         
