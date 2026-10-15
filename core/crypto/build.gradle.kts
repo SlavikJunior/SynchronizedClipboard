@@ -17,6 +17,15 @@ kotlin {
         }
     }
 
+    // JVM-таргет для desktop-клиента (CLI-демон на macOS/Linux, Фаза 5 MVP).
+    // Ключ PBKDF2 деривируется из парольной фразы (JCA), поэтому Android и JVM
+    // используют один и тот же код — он вынесен в промежуточный source set.
+    jvm {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
+    }
+
     // iOS targets.
     // iosX64 отсутствует осознанно: androidx.sqlite 2.7.x исключил iosX64 из
     // публикаций, и целевой набор приведён к единому виду с :core:database.
@@ -36,15 +45,19 @@ kotlin {
             implementation(libs.koin.annotations)
         }
 
-        // Android-реализация крипты остаётся на JCA (`javax.crypto`) с ключом
-        // в AndroidKeyStore — ключ неэкспортируем, поэтому whyoleg там не
-        // используется. Зависимость объявлена только для iOS: там
-        // provider-optimal разворачивается в CryptoKit (+ CommonCrypto fallback).
+        // Android и JVM (desktop) используют один и тот же JCA-стек. Общий
+        // промежуточный source set (jvmCommon) здесь сознательно НЕ создаётся:
+        // в Kotlin 2.4 + AGP 9 ручная wiring'-иерархия ломает Default Hierarchy
+        // Template (iosMain выпадает из компиляций). Дублирование ~100 строк
+        // JCA-кода между androidMain и jvmMain — осознанный компромисс в пользу
+        // работающей сборки; реализации и так разойдутся (AndroidKeyStore).
+
+        // whyoleg остаётся iOS-only зависимостью: provider-optimal
+        // разворачивается в CryptoKit (+ CommonCrypto fallback).
+        // runBlocking-мост больше не нужен — используются blocking-варианты API.
         iosMain.dependencies {
             implementation(libs.cryptography.core)
             implementation(libs.cryptography.provider.optimal)
-            // runBlocking-мост для suspend-API whyoleg → sync-контракт CryptoManager
-            implementation(libs.kotlinx.coroutines.core)
         }
 
         commonTest.dependencies {
