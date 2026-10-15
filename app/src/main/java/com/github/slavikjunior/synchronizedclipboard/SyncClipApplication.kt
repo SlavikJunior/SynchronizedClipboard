@@ -10,6 +10,8 @@ import com.github.slavikjunior.synchronizedclipboard.core.di.module as diModule
 import com.github.slavikjunior.synchronizedclipboard.core.cache.di.CacheModule
 import com.github.slavikjunior.synchronizedclipboard.core.cache.di.module as cacheModule
 import com.github.slavikjunior.synchronizedclipboard.core.network.NetworkModule
+import com.github.slavikjunior.synchronizedclipboard.core.network.SyncConfig
+import com.github.slavikjunior.synchronizedclipboard.core.network.SyncConfigProvider
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.AuthModule
 import com.github.slavikjunior.synchronizedclipboard.feature.auth.impl.module as authModule
 import com.github.slavikjunior.synchronizedclipboard.feature.clipboard.impl.ClipboardModule
@@ -34,6 +36,7 @@ class SyncClipApplication : Application() {
             androidContext(this@SyncClipApplication)
             modules(
                 jsonModule,
+                syncConfigModule,
                 NetworkModule().networkModule(),
                 DatabaseModule().databaseModule(),
                 CryptoModule().cryptoModule(),
@@ -56,4 +59,19 @@ private val jsonModule = module {
             prettyPrint = true
         }
     }
+}
+
+/**
+ * Конфигурация подключения к бэкенду.
+ *
+ * Пока — минимальный провайдер со значением по умолчанию
+ * ([SyncConfig.DEFAULT] = `localhost:8080`). Пользовательский выбор хоста
+ * появится отдельной задачей (поле в Settings + DataStore).
+ *
+ * NB: на Android-эмуляторе хост-машина доступна как `10.0.2.2`, а не
+ * `localhost` — при работе с локальным бэкендом потребуется переопределить
+ * конфиг здесь.
+ */
+private val syncConfigModule = module {
+    single<SyncConfigProvider> { SyncConfigProvider { SyncConfig.DEFAULT } }
 }
